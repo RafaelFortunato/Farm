@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3d89e525398bee41822f3b388647e69, type: 3}
+  m_Name: Crop_Carrot
+  m_EditorClassIdentifier: Assembly-CSharp::CropDef
+  displayName: Carrot
+  menuColor: {r: 1, g: 0.62, b: 0.28, a: 1}
+  stagePrefabs:
+  - {fileID: 2582875128571546930, guid: f4ea6b9d24fd2164795278fa98ffb6c1, type: 3}
+  - {fileID: 3856223855077511753, guid: 1a0fc3072ca96ec4283af64115b956a1, type: 3}
+  - {fileID: 8204887017581438627, guid: 256da108ea4933f498908e467e4c1fc9, type: 3}
+  - {fileID: 1354996048308653523, guid: da30c56b3f093764d9d473da3bb794ef, type: 3}
+  stageScales: []
+  growSeconds: 15
+  seedCost: 4
+  sellValue: 14
+  collectablePrefab: {fileID: 0}
