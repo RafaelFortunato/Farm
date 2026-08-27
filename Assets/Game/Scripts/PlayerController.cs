@@ -6,14 +6,14 @@ using UnityEngine;
 /// Movement is camera-relative: "up" means away from the camera, which is what a
 /// player expects on a fixed-angle top-down view.
 ///
-/// The Neko Cat asset ships rigged but with no locomotion clip (only a tail wriggle),
-/// so the sense of walking is faked procedurally: a hop, a lean into the direction of
-/// travel, and a small squash on landing. Cheap, and it reads better than a slide.
+/// Locomotion visuals come from retargeted Mixamo clips (HappyIdle / HappyWalk) blended
+/// on the "Speed" parameter. Both clips are In Place, so this script keeps sole ownership
+/// of position and the Animator only poses the rig.
 /// </summary>
 [DisallowMultipleComponent]
 public class PlayerController : MonoBehaviour
 {
-    const float TAU = 6.2831853f;
+    static readonly int SpeedHash = Animator.StringToHash("Speed");
 
     [Header("Movement")]
     [Tooltip("Units per second at full tilt. A ground tile is 2 units wide.")]
@@ -28,13 +28,11 @@ public class PlayerController : MonoBehaviour
     public Vector2 boundsMin = new Vector2(-11f, -11f);
     public Vector2 boundsMax = new Vector2(11f, 11f);
 
-    [Header("Procedural motion")]
-    [Tooltip("Child transform holding the mesh. Bobbed/leaned without affecting the logical position.")]
+    [Header("Animation")]
+    [Tooltip("Child transform holding the mesh and the body Animator.")]
     public Transform visual;
-    public float hopHeight = 0.18f;
-    public float hopFrequency = 9f;
-    public float leanAngle = 9f;
-    public float squashAmount = 0.08f;
+    [Tooltip("Smooths the idle<->walk blend so tapping a key doesn't pop the pose.")]
+    public float speedDamp = 0.08f;
 
     /// <summary>Current planar speed, 0..moveSpeed. Useful for future footstep SFX / dust.</summary>
     public float CurrentSpeed { get; private set; }
@@ -46,6 +44,7 @@ public class PlayerController : MonoBehaviour
     // cached in Awake - Update does no lookups and no null checks
     Transform _tf;
     Transform _cam;
+    Animator _animator;
     float _invMoveSpeed;
 
     // camera basis, recomputed only when the camera actually rotates.
@@ -54,34 +53,25 @@ public class PlayerController : MonoBehaviour
     Vector3 _camFwd;
     Vector3 _camRight;
 
-    float _hopPhase;
-    bool _visualAtRest;
-    Vector3 _visualBaseLocalPos;
-    Vector3 _visualBaseScale;
+    void OnValidate() => CacheInverseSpeed();
 
-    void Awake()
+    void CacheInverseSpeed() => _invMoveSpeed = moveSpeed > 0.0001f ? 1f / moveSpeed : 0f;
+
+    // Everything is cached here rather than in Awake. OnEnable always runs before the first
+    // Update - including after a domain reload during play, which re-runs OnEnable but NOT
+    // Awake. That keeps Update free of null checks.
+    // Bindings live in Assets/Game/InputSystem_Actions (Player/Move), which already covers
+    // WASD, arrows, gamepad stick, joystick and XR. This is its generated wrapper.
+    void OnEnable()
     {
         _tf = transform;
         _cam = Camera.main.transform;
 
         if (visual == null && _tf.childCount > 0) visual = _tf.GetChild(0);
-        if (visual != null)
-        {
-            _visualBaseLocalPos = visual.localPosition;
-            _visualBaseScale = visual.localScale;
-        }
+        _animator = visual.GetComponent<Animator>();
 
         CacheInverseSpeed();
-    }
 
-    void OnValidate() => CacheInverseSpeed();
-
-    void CacheInverseSpeed() => _invMoveSpeed = moveSpeed > 0.0001f ? 1f / moveSpeed : 0f;
-
-    // Bindings live in Assets/Game/InputSystem_Actions (Player/Move), which already covers
-    // WASD, arrows, gamepad stick, joystick and XR. This is its generated wrapper.
-    void OnEnable()
-    {
         _input ??= new InputSystem_Actions();
         _input.Player.Enable();
     }
@@ -132,7 +122,8 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        ApplyProceduralMotion(dt);
+        // drive the idle <-> walk blend
+        _animator.SetFloat(SpeedHash, CurrentSpeed * _invMoveSpeed, speedDamp, dt);
     }
 
     /// <summary>Flatten the camera's forward onto the ground plane, only when it has moved.</summary>
@@ -146,56 +137,6 @@ public class PlayerController : MonoBehaviour
         fwd.y = 0f;
         _camFwd = fwd.normalized;
         _camRight = new Vector3(_camFwd.z, 0f, -_camFwd.x); // == Cross(Vector3.up, _camFwd)
-    }
-
-    void ApplyProceduralMotion(float dt)
-    {
-        if (visual == null) return;
-
-        float t = CurrentSpeed * _invMoveSpeed;
-        if (t > 1f) t = 1f;
-
-        if (t > 0.01f)
-        {
-            _hopPhase += dt * hopFrequency * t;
-            if (_hopPhase > TAU) _hopPhase -= TAU;
-            _visualAtRest = false;
-        }
-        else if (!_visualAtRest)
-        {
-            _hopPhase = Mathf.MoveTowards(_hopPhase, 0f, dt * 8f);
-            if (_hopPhase <= 0f)
-            {
-                // settle exactly on the rest pose once, then stop touching the transform
-                _hopPhase = 0f;
-                visual.localPosition = _visualBaseLocalPos;
-                visual.localScale = _visualBaseScale;
-                visual.localRotation = Quaternion.identity;
-                _visualAtRest = true;
-                return;
-            }
-        }
-        else
-        {
-            return; // idle and already settled - no transform writes at all
-        }
-
-        // abs(sin) gives a bouncing arc rather than a floaty sine
-        float hop = Mathf.Abs(Mathf.Sin(_hopPhase)) * hopHeight * t;
-        visual.localPosition = new Vector3(
-            _visualBaseLocalPos.x,
-            _visualBaseLocalPos.y + hop,
-            _visualBaseLocalPos.z);
-
-        // squash at the bottom of the arc, stretch at the top
-        float squash = Mathf.Cos(_hopPhase * 2f) * squashAmount * t;
-        visual.localScale = new Vector3(
-            _visualBaseScale.x * (1f + squash),
-            _visualBaseScale.y * (1f - squash),
-            _visualBaseScale.z * (1f + squash));
-
-        // lean forward into the run
-        visual.localRotation = Quaternion.Euler(leanAngle * t, 0f, 0f);
     }
 
     void OnDrawGizmosSelected()

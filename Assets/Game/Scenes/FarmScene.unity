@@ -10708,6 +10708,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6091249284180459995, guid: b378c8c7799eba342a7c00e83058151c, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 94674fe3ee4797b43bbe170337fc5453, type: 2}
+    - target: {fileID: 6091249284180459995, guid: b378c8c7799eba342a7c00e83058151c, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -12406,10 +12414,7 @@ MonoBehaviour:
   boundsMin: {x: -11, y: -11}
   boundsMax: {x: 11, y: 11}
   visual: {fileID: 1357290732}
-  hopHeight: 0.18
-  hopFrequency: 9
-  leanAngle: 9
-  squashAmount: 0.08
+  speedDamp: 0.08
 --- !u!4 &1580073754
 Transform:
   m_ObjectHideFlags: 0
