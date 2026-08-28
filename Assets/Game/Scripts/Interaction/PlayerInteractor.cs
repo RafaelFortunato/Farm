@@ -8,6 +8,7 @@ using UnityEngine;
 /// and needs no colliders or layer setup.
 /// </summary>
 [DisallowMultipleComponent]
+[RequireComponent(typeof(PlayerController))]
 public class PlayerInteractor : MonoBehaviour
 {
     [Tooltip("How close the player must be, in world units. A ground tile is 2 wide.")]
@@ -18,7 +19,23 @@ public class PlayerInteractor : MonoBehaviour
 
     public Interactable Current { get; private set; }
 
+    /// <summary>
+    /// The movement controller on this same object, so interactions can lock input.
+    /// Resolved on first use rather than only in OnEnable: a domain reload wipes the cache
+    /// and edit-mode callers can reach this before OnEnable has run again.
+    /// </summary>
+    public PlayerController Controller =>
+        _controller != null ? _controller : (_controller = GetComponent<PlayerController>());
+
+    /// <summary>
+    /// True while the player is actually free to start an interaction. The single answer
+    /// to "can I act right now" - input polling and the world prompt both read it, so the
+    /// prompt can never offer something the button would refuse.
+    /// </summary>
+    public bool CanInteractNow => !SeedMenu.IsOpen && !Controller.IsBusy;
+
     InputSystem_Actions _input;
+    PlayerController _controller;
     Transform _tf;
     float _rangeSq;
 
@@ -44,7 +61,7 @@ public class PlayerInteractor : MonoBehaviour
         // Polled rather than a 'performed' subscription: there is no subscribe/unsubscribe
         // lifecycle to get wrong across domain reloads, and it reads next to the focus logic.
         if (_input.Player.Interact.WasPressedThisFrame()
-            && !SeedMenu.IsOpen                       // the menu owns input while it is up
+            && CanInteractNow
             && Current != null && Current.CanInteract)
         {
             Current.Interact(this);

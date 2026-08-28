@@ -27,8 +27,12 @@ public class SeedMenu : MonoBehaviour
 
     readonly System.Collections.Generic.List<CropButton> _buttons = new System.Collections.Generic.List<CropButton>();
     SoilPlot _target;
+    PlayerInteractor _interactor;
 
-    void Awake()
+    // Initialised in OnEnable rather than Awake: a domain reload during play wipes the
+    // static Instance and re-runs OnEnable but NOT Awake, which would leave Instance null
+    // while the spawned rows still exist.
+    void OnEnable()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
@@ -50,10 +54,17 @@ public class SeedMenu : MonoBehaviour
         IsOpen = false;
     }
 
-    /// <summary>One row per crop, spawned once from the prefab.</summary>
+    /// <summary>
+    /// One row per crop. Clears any existing rows first so this is safe to call again
+    /// after a domain reload, when the old rows survive but the bindings do not.
+    /// </summary>
     void BuildCropButtons()
     {
         if (cropButtonPrefab == null || cropButtonContainer == null || crops == null) return;
+
+        _buttons.Clear();
+        for (int i = cropButtonContainer.childCount - 1; i >= 0; i--)
+            DestroyImmediate(cropButtonContainer.GetChild(i).gameObject);
 
         foreach (var crop in crops)
         {
@@ -65,9 +76,10 @@ public class SeedMenu : MonoBehaviour
         }
     }
 
-    public void Open(SoilPlot plot)
+    public void Open(SoilPlot plot, PlayerInteractor interactor = null)
     {
         _target = plot;
+        _interactor = interactor;
         if (panelRoot != null) panelRoot.SetActive(true);
         IsOpen = true;
         Refresh();
@@ -76,6 +88,7 @@ public class SeedMenu : MonoBehaviour
     public void Close()
     {
         _target = null;
+        _interactor = null;
         if (panelRoot != null) panelRoot.SetActive(false);
         IsOpen = false;
     }
@@ -94,9 +107,9 @@ public class SeedMenu : MonoBehaviour
     {
         if (_target == null) { Close(); return; }
 
-        if (_target.TryPlant(crop))
-            Close();
-        else
-            Refresh();
+        // The plot owns which beat plays - the menu only forwards who is doing the planting.
+        if (!_target.TryPlant(crop, _interactor)) { Refresh(); return; }
+
+        Close();
     }
 }

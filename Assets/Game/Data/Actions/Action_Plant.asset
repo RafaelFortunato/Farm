@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7269188e9a9bf2b4eae5a75033355b1b, type: 3}
+  m_Name: Action_Plant
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterAction
+  duration: 2.75
+  faceTarget: 1
+  animatorTrigger: Plant
+  clip: {fileID: -203655887218126122, guid: d93de9eaafa3402488b2e9a9a6259b54, type: 3}
+  crouch: 0.3
+  lean: 22

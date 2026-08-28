@@ -14,6 +14,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     static readonly int SpeedHash = Animator.StringToHash("Speed");
+    static readonly int ActionSpeedHash = Animator.StringToHash("ActionSpeed");
 
     [Header("Movement")]
     [Tooltip("Units per second at full tilt. A ground tile is 2 units wide.")]
@@ -37,21 +38,36 @@ public class PlayerController : MonoBehaviour
     /// <summary>Current planar speed, 0..moveSpeed. Useful for future footstep SFX / dust.</summary>
     public float CurrentSpeed { get; private set; }
 
+    /// <summary>
+    /// True while a scripted beat is playing. Movement is frozen and interaction refused
+    /// for the duration - see PlayerInteractor.CanInteractNow.
+    /// </summary>
+    public bool IsBusy => _action != null;
+
+    /// <summary>The beat currently playing, or null. Lets callers react per action.</summary>
+    public CharacterAction CurrentAction => _action;
+
     InputSystem_Actions _input;
     Vector2 _externalInput;
     Vector3 _velocity;
 
-    // cached in Awake - Update does no lookups and no null checks
+    // cached in OnEnable - Update does no lookups and no null checks
     Transform _tf;
     Transform _cam;
     Animator _animator;
     float _invMoveSpeed;
+    Vector3 _visualBaseLocalPos;
+    Quaternion _visualBaseLocalRot;
 
     // camera basis, recomputed only when the camera actually rotates.
-    // CameraFollow holds a fixed yaw, so in practice this resolves once.
     Quaternion _lastCamRot = new Quaternion(2f, 0f, 0f, 0f); // impossible value forces first compute
     Vector3 _camFwd;
     Vector3 _camRight;
+
+    CharacterAction _action;
+    float _actionTimer;
+    float _actionDuration;
+    System.Action _onActionComplete;
 
     void OnValidate() => CacheInverseSpeed();
 
@@ -60,8 +76,6 @@ public class PlayerController : MonoBehaviour
     // Everything is cached here rather than in Awake. OnEnable always runs before the first
     // Update - including after a domain reload during play, which re-runs OnEnable but NOT
     // Awake. That keeps Update free of null checks.
-    // Bindings live in Assets/Game/InputSystem_Actions (Player/Move), which already covers
-    // WASD, arrows, gamepad stick, joystick and XR. This is its generated wrapper.
     void OnEnable()
     {
         _tf = transform;
@@ -69,6 +83,8 @@ public class PlayerController : MonoBehaviour
 
         if (visual == null && _tf.childCount > 0) visual = _tf.GetChild(0);
         _animator = visual.GetComponent<Animator>();
+        _visualBaseLocalPos = visual.localPosition;
+        _visualBaseLocalRot = visual.localRotation;
 
         CacheInverseSpeed();
 
@@ -85,9 +101,51 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void SetExternalInput(Vector2 input) => _externalInput = input;
 
+    /// <summary>
+    /// Locks input and plays a scripted beat. The cat stops, optionally turns to face what
+    /// it is using, and holds until the beat ends.
+    ///
+    /// onComplete fires once, at the end - that is where the result of the beat belongs
+    /// (the crop popping out, the cake appearing), so the animation reads as its cause.
+    /// A null action means nothing is authored yet: the result still fires, immediately.
+    /// </summary>
+    public void BeginAction(CharacterAction action, Transform faceTarget = null, System.Action onComplete = null)
+    {
+        if (action == null) { onComplete?.Invoke(); return; }
+
+        _action = action;
+        _actionDuration = Mathf.Max(action.duration, 0.0001f);
+        _actionTimer = _actionDuration;
+        _onActionComplete = onComplete;
+
+        _velocity = Vector3.zero;
+        CurrentSpeed = 0f;
+
+        if (action.faceTarget && faceTarget != null)
+        {
+            Vector3 to = faceTarget.position - _tf.position;
+            to.y = 0f;
+            if (to.sqrMagnitude > 0.0001f) _tf.rotation = Quaternion.LookRotation(to.normalized);
+        }
+
+        _animator.SetFloat(SpeedHash, 0f);
+        if (!action.UsesProceduralPose)
+        {
+            // stretch the clip onto the beat's duration before firing it
+            _animator.SetFloat(ActionSpeedHash, action.PlaybackSpeed);
+            _animator.SetTrigger(action.TriggerHash);
+        }
+    }
+
     void Update()
     {
         float dt = Time.deltaTime;
+
+        if (IsBusy)
+        {
+            TickAction(dt);
+            return;
+        }
 
         Vector2 raw = _input.Player.Move.ReadValue<Vector2>();
         if (_externalInput.sqrMagnitude > raw.sqrMagnitude) raw = _externalInput;
@@ -122,8 +180,45 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // drive the idle <-> walk blend
         _animator.SetFloat(SpeedHash, CurrentSpeed * _invMoveSpeed, speedDamp, dt);
+    }
+
+    /// <summary>
+    /// Runs the clock on the current beat. When the action names a clip the Animator owns
+    /// the pose and this only holds the lock; otherwise the procedural dip stands in.
+    /// </summary>
+    void TickAction(float dt)
+    {
+        _actionTimer -= dt;
+
+        if (_action.UsesProceduralPose)
+        {
+            float t = 1f - Mathf.Clamp01(_actionTimer / _actionDuration);
+            float arc = Mathf.Sin(t * Mathf.PI);   // 0 -> 1 -> 0, so it dips and returns
+
+            visual.localPosition = _visualBaseLocalPos - new Vector3(0f, _action.crouch * arc, 0f);
+            visual.localRotation = _visualBaseLocalRot * Quaternion.Euler(_action.lean * arc, 0f, 0f);
+
+            // hold the idle pose underneath the dip
+            _animator.SetFloat(SpeedHash, 0f);
+        }
+
+        if (_actionTimer <= 0f) EndAction();
+    }
+
+    void EndAction()
+    {
+        if (_action.UsesProceduralPose)
+        {
+            visual.localPosition = _visualBaseLocalPos;
+            visual.localRotation = _visualBaseLocalRot;
+        }
+
+        // cleared before the callback runs, so the callback is free to start the next beat
+        _action = null;
+        var done = _onActionComplete;
+        _onActionComplete = null;
+        done?.Invoke();
     }
 
     /// <summary>Flatten the camera's forward onto the ground plane, only when it has moved.</summary>

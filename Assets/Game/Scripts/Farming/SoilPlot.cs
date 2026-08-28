@@ -13,6 +13,12 @@ public class SoilPlot : Interactable
     [Tooltip("Where the crop model is parented. Defaults to a child named CropAnchor.")]
     public Transform cropAnchor;
 
+    [Header("Player actions")]
+    [Tooltip("Beat the player performs when sowing a seed. Leave empty to plant instantly.")]
+    public CharacterAction plantAction;
+    [Tooltip("Beat the player performs when pulling a crop. Leave empty to harvest instantly.")]
+    public CharacterAction harvestAction;
+
     [Header("Runtime (read-only)")]
     [SerializeField] PlotState _state = PlotState.Empty;
     [SerializeField] CropDef _crop;
@@ -117,26 +123,41 @@ public class SoilPlot : Interactable
         switch (_state)
         {
             case PlotState.Empty:
-                SeedMenu.Instance?.Open(this);
+                SeedMenu.Instance?.Open(this, interactor);
                 break;
             case PlotState.Ready:
-                Harvest();
+                // The crop pops out at the end of the beat, so the dip reads as its cause.
+                // With no action wired the callback runs immediately, same as before.
+                interactor.Controller.BeginAction(harvestAction, transform, Harvest);
                 break;
         }
     }
 
-    /// <summary>Plants a crop if the player can afford the seed. Returns false if too poor.</summary>
-    public bool TryPlant(CropDef crop)
+    /// <summary>
+    /// Plants a crop if the player can afford the seed. Returns false if too poor.
+    /// Pass the interactor to play the planting beat; leave it null to plant silently.
+    /// </summary>
+    public bool TryPlant(CropDef crop, PlayerInteractor interactor = null)
     {
         if (_state != PlotState.Empty || crop == null) return false;
         if (!Inventory.TrySpend(crop.seedCost)) return false;
 
         _crop = crop;
-        _plantedAt = Time.time;
         _stageShown = -1;
+
+        // The seed only goes in when the beat ends, so the growth clock and the ring above
+        // the plot both start with the animation rather than with the button press.
+        if (interactor != null) interactor.Controller.BeginAction(plantAction, transform, BeginGrowing);
+        else BeginGrowing();
+        return true;
+    }
+
+    /// <summary>Starts the growth clock. Deferred to the end of the planting beat.</summary>
+    void BeginGrowing()
+    {
+        _plantedAt = Time.time;
         SetState(PlotState.Growing);
         ShowStage(0);
-        return true;
     }
 
     void Harvest()

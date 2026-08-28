@@ -40,8 +40,9 @@ public class InteractPrompt : MonoBehaviour
 
     void LateUpdate()
     {
-        // the seed menu takes over input, so the world prompt would be misleading
-        Interactable target = (interactor != null && !SeedMenu.IsOpen) ? interactor.Current : null;
+        // Hidden whenever the player cannot actually press the button - a menu is up, or a
+        // scripted beat is playing - so the badge never offers an interaction that is refused.
+        Interactable target = (interactor != null && interactor.CanInteractNow) ? interactor.Current : null;
 
         bool show = target != null && target.CanInteract && !string.IsNullOrEmpty(target.Prompt);
 

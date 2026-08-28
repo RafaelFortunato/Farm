@@ -100,6 +100,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoilPlot
   focusAnchor: {fileID: 5924350286498944799}
   cropAnchor: {fileID: 5924350286498944799}
+  plantAction: {fileID: 11400000, guid: c6e6d0f6c81df894c9db59e477e177ee, type: 2}
+  harvestAction: {fileID: 11400000, guid: 6194b51c81642d74780dcc999e402e82, type: 2}
   _state: 0
   _crop: {fileID: 0}
   _plantedAt: 0
