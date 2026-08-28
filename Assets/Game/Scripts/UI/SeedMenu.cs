@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,7 +22,6 @@ public class SeedMenu : MonoBehaviour
     [SerializeField] Transform cropButtonContainer;
     [SerializeField] CropButton cropButtonPrefab;
     [SerializeField] Button cancelButton;
-    [SerializeField] TextMeshProUGUI coinLabel;
 
     readonly System.Collections.Generic.List<CropButton> _buttons = new System.Collections.Generic.List<CropButton>();
     SoilPlot _target;
@@ -95,8 +93,6 @@ public class SeedMenu : MonoBehaviour
 
     void Refresh()
     {
-        if (coinLabel != null) coinLabel.text = Inventory.Coins + " COINS";
-
         // grey out anything the player cannot afford right now
         for (int i = 0; i < _buttons.Count && i < crops.Length; i++)
             if (_buttons[i] != null && crops[i] != null)
