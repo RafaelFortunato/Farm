@@ -60,6 +60,19 @@ public static class Inventory
         Changed?.Invoke();
     }
 
+    /// <summary>Hands produce over to fill an order. False when the crate is short.</summary>
+    public static bool TrySpendProduce(CropDef crop, int amount)
+    {
+        if (crop == null || amount <= 0) return false;
+
+        ProduceCrate.TryGetValue(crop, out int n);
+        if (n < amount) return false;
+
+        ProduceCrate[crop] = n - amount;
+        Changed?.Invoke();
+        return true;
+    }
+
     // --- coins ---
 
     public static bool TrySpend(int coins)

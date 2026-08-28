@@ -1,0 +1,71 @@
+using UnityEngine;
+
+/// <summary>
+/// The counter the player sells across. Only the truck at the head of the queue can be
+/// served - the fence keeps the player off the road, so this is the single point of contact.
+/// </summary>
+public class SellCounter : Interactable
+{
+    [SerializeField] TruckQueue queue;
+
+    [Tooltip("Beat the player performs when handing produce over. Optional.")]
+    public CharacterAction sellAction;
+
+    public override string Prompt => _prompt;
+
+    // Rebuilt only when the order or the player's stock changes, so the prompt never
+    // allocates per frame and the badge above it refreshes at the right moments.
+    public override int StateKey => _stateKey;
+
+    string _prompt = "";
+    int _pendingReward;
+    System.Action _onSold;
+    int _stateKey;
+    int _lastVersion = -1;
+    bool _lastAffordable;
+
+    void Update()
+    {
+        var front = queue != null ? queue.Front : null;
+        bool affordable = front != null && front.Wanted != null
+                          && Inventory.ProduceCount(front.Wanted) >= front.Amount;
+
+        int version = queue != null ? queue.OrderVersion : 0;
+        if (version == _lastVersion && affordable == _lastAffordable) return;
+
+        _lastVersion = version;
+        _lastAffordable = affordable;
+        _stateKey++;
+
+        if (front == null || front.Wanted == null) { _prompt = ""; return; }
+
+        _prompt = affordable
+            ? "Sell " + front.Amount + " " + front.Wanted.displayName
+            : "Need " + front.Amount + " " + front.Wanted.displayName;
+    }
+
+    // Always focusable so the player can read what the truck wants; the sale itself is what
+    // gets refused when they are short.
+    public override bool CanInteract => queue != null && queue.Front != null;
+
+    public override void Interact(PlayerInteractor interactor)
+    {
+        var front = queue.Front;
+        if (front == null || front.Wanted == null) return;
+        if (!front.Arrived) return;                       // still rolling up
+
+        if (!Inventory.TrySpendProduce(front.Wanted, front.Amount)) return;
+
+        // cached delegate rather than a lambda: this fires on every sale for the whole
+        // session, and the reward rides in a field instead of a captured closure
+        _pendingReward = front.Reward;
+        _onSold ??= CompleteSale;
+        interactor.Controller.BeginAction(sellAction, transform, _onSold);
+    }
+
+    void CompleteSale()
+    {
+        Inventory.AddCoins(_pendingReward);
+        queue.Advance();
+    }
+}
