@@ -134,13 +134,13 @@ public class SoilPlot : Interactable
     }
 
     /// <summary>
-    /// Plants a crop if the player can afford the seed. Returns false if too poor.
+    /// Plants a crop if the player has a seed for it. Returns false if the bag is empty.
     /// Pass the interactor to play the planting beat; leave it null to plant silently.
     /// </summary>
     public bool TryPlant(CropDef crop, PlayerInteractor interactor = null)
     {
         if (_state != PlotState.Empty || crop == null) return false;
-        if (!Inventory.TrySpend(crop.seedCost)) return false;
+        if (!Inventory.TryUseSeed(crop)) return false;
 
         _crop = crop;
         _stageShown = -1;

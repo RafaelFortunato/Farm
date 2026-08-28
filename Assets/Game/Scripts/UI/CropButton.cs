@@ -12,6 +12,8 @@ public class CropButton : MonoBehaviour
     [SerializeField] Button button;
     [SerializeField] TextMeshProUGUI label;
 
+    CropDef _crop;
+
     void Reset()
     {
         button = GetComponent<Button>();
@@ -20,20 +22,24 @@ public class CropButton : MonoBehaviour
 
     public void Bind(CropDef crop, Action<CropDef> onClick)
     {
+        _crop = crop;
         if (crop == null) return;
-
-        if (label != null)
-            label.text = string.Format("{0}   {1}c   {2}s",
-                crop.displayName.ToUpperInvariant(), crop.seedCost, Mathf.RoundToInt(crop.growSeconds));
 
         if (button == null) return;
         button.onClick.RemoveAllListeners();
         button.onClick.AddListener(() => onClick?.Invoke(crop));
     }
 
-    /// <summary>Greys the row out when the player cannot afford the seed.</summary>
-    public void SetAffordable(bool affordable)
+    /// <summary>
+    /// Shows how many seeds are left and disables the row at zero. The count is part of
+    /// the label, so it is rebuilt here rather than in Bind - it changes as you plant.
+    /// </summary>
+    public void SetStock(int seeds)
     {
-        if (button != null) button.interactable = affordable;
+        if (label != null && _crop != null)
+            label.text = string.Format("{0}   x{1}   {2}s",
+                _crop.displayName.ToUpperInvariant(), seeds, Mathf.RoundToInt(_crop.growSeconds));
+
+        if (button != null) button.interactable = seeds > 0;
     }
 }

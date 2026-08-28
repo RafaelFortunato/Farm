@@ -8,15 +8,14 @@ using UnityEngine.UI;
 /// One instance for the whole scene rather than one per interactable: only a single
 /// target is ever focused, so a shared badge that moves is cheaper and keeps the
 /// prompt styling in one place.
+///
+/// This object IS the thing that gets shown and hidden, and it is driven by
+/// PlayerInteractor rather than by its own Update. That means it can sit disabled in the
+/// scene - which is how it should be saved, so it does not clutter the editor view -
+/// without the prompt going dead at runtime.
 /// </summary>
 public class InteractPrompt : MonoBehaviour
 {
-    [Tooltip("Found automatically if left empty.")]
-    public PlayerInteractor interactor;
-
-    [Tooltip("Canvas object toggled on only when something is in range.")]
-    public GameObject canvasRoot;
-
     public Image keyIcon;
     public TextMeshProUGUI label;
 
@@ -27,29 +26,30 @@ public class InteractPrompt : MonoBehaviour
     Transform _cam;
     Interactable _shown;
     int _shownStateKey = -1;
+    bool _ready;
 
-    void OnEnable()
+    // Lazy rather than OnEnable: this object starts disabled, so OnEnable has not run by
+    // the time the first Show call arrives.
+    void EnsureInit()
     {
+        if (_ready) return;
         _tf = transform;
         _cam = Camera.main.transform;
-        if (interactor == null) interactor = FindAnyObjectByType<PlayerInteractor>();
-        if (canvasRoot != null) canvasRoot.SetActive(false);
-        _shown = null;
-        _shownStateKey = -1;
+        _ready = true;
     }
 
-    void LateUpdate()
+    /// <summary>
+    /// Point the badge at a target, or pass null to hide it. Safe to call every frame,
+    /// and safe to call while this object is disabled.
+    /// </summary>
+    public void Show(Interactable target)
     {
-        // Hidden whenever the player cannot actually press the button - a menu is up, or a
-        // scripted beat is playing - so the badge never offers an interaction that is refused.
-        Interactable target = (interactor != null && interactor.CanInteractNow) ? interactor.Current : null;
-
         bool show = target != null && target.CanInteract && !string.IsNullOrEmpty(target.Prompt);
 
-        if (canvasRoot != null && canvasRoot.activeSelf != show)
-            canvasRoot.SetActive(show);
-
+        if (gameObject.activeSelf != show) gameObject.SetActive(show);
         if (!show) { _shown = null; _shownStateKey = -1; return; }
+
+        EnsureInit();
 
         // Refresh when the target OR its state changes. Harvesting keeps the same plot
         // focused while its state flips Ready -> Empty, so target identity alone is not

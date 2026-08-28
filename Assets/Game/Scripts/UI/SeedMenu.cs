@@ -9,7 +9,20 @@ using UnityEngine.UI;
 /// </summary>
 public class SeedMenu : MonoBehaviour
 {
-    public static SeedMenu Instance { get; private set; }
+    /// <summary>
+    /// Found lazily, INCLUDING while disabled. The panel is saved deactivated so it does
+    /// not clutter the editor view, which means OnEnable has not run and cannot have
+    /// registered anything - so the lookup has to tolerate an inactive object.
+    /// </summary>
+    public static SeedMenu Instance
+    {
+        get
+        {
+            if (_instance == null) _instance = FindAnyObjectByType<SeedMenu>(FindObjectsInactive.Include);
+            return _instance;
+        }
+    }
+    static SeedMenu _instance;
 
     /// <summary>True while the menu is up, so gameplay input can ignore Interact.</summary>
     public static bool IsOpen { get; private set; }
@@ -27,28 +40,11 @@ public class SeedMenu : MonoBehaviour
     SoilPlot _target;
     PlayerInteractor _interactor;
 
-    // Initialised in OnEnable rather than Awake: a domain reload during play wipes the
-    // static Instance and re-runs OnEnable but NOT Awake, which would leave Instance null
-    // while the spawned rows still exist.
-    void OnEnable()
-    {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
-
-        BuildCropButtons();
-
-        if (cancelButton != null)
-        {
-            cancelButton.onClick.RemoveAllListeners();
-            cancelButton.onClick.AddListener(Close);
-        }
-
-        Close();
-    }
+    void OnEnable() => _instance = this;
 
     void OnDestroy()
     {
-        if (Instance == this) Instance = null;
+        if (_instance == this) _instance = null;
         IsOpen = false;
     }
 
@@ -78,25 +74,41 @@ public class SeedMenu : MonoBehaviour
     {
         _target = plot;
         _interactor = interactor;
+
+        gameObject.SetActive(true);              // this object is the toggle
         if (panelRoot != null) panelRoot.SetActive(true);
+
+        // rebuilt on every open rather than once at startup: three rows is nothing, and it
+        // cannot go stale after a domain reload wipes the bindings
+        if (cancelButton != null)
+        {
+            cancelButton.onClick.RemoveAllListeners();
+            cancelButton.onClick.AddListener(Close);
+        }
+        BuildCropButtons();
+
         IsOpen = true;
         Refresh();
+
+        // rows were just spawned into a panel enabled this frame - settle it now
+        Menus.RebuildLayout(cropButtonContainer as RectTransform,
+                            cropButtonContainer != null ? cropButtonContainer.parent as RectTransform : null);
     }
 
     public void Close()
     {
         _target = null;
         _interactor = null;
-        if (panelRoot != null) panelRoot.SetActive(false);
         IsOpen = false;
+        gameObject.SetActive(false);
     }
 
     void Refresh()
     {
-        // grey out anything the player cannot afford right now
+        // a crop is plantable only while there is a seed for it in the bag
         for (int i = 0; i < _buttons.Count && i < crops.Length; i++)
             if (_buttons[i] != null && crops[i] != null)
-                _buttons[i].SetAffordable(Inventory.Coins >= crops[i].seedCost);
+                _buttons[i].SetStock(Inventory.SeedCount(crops[i]));
     }
 
     void Choose(CropDef crop)

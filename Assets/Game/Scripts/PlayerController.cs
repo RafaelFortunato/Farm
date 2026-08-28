@@ -152,6 +152,16 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // A menu owns input while it is up. Stop dead rather than letting the cat wander off
+        // behind the panel - the same gate PlayerInteractor uses to refuse the Interact button.
+        if (Menus.AnyOpen)
+        {
+            _velocity = Vector3.zero;
+            CurrentSpeed = 0f;
+            _animator.SetFloat(SpeedHash, 0f, speedDamp, dt);
+            return;
+        }
+
         Vector2 raw = _input.Player.Move.ReadValue<Vector2>();
         if (_externalInput.sqrMagnitude > raw.sqrMagnitude) raw = _externalInput;
 

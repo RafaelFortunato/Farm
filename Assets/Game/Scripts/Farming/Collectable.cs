@@ -80,7 +80,7 @@ public class Collectable : MonoBehaviour
 
     void Collect()
     {
-        Inventory.Add(crop, amount);
+        Inventory.AddProduce(crop, amount);
         Destroy(gameObject);
     }
 }

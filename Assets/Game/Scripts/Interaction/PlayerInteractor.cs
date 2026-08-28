@@ -32,8 +32,9 @@ public class PlayerInteractor : MonoBehaviour
     /// to "can I act right now" - input polling and the world prompt both read it, so the
     /// prompt can never offer something the button would refuse.
     /// </summary>
-    public bool CanInteractNow => !SeedMenu.IsOpen && !Controller.IsBusy;
+    public bool CanInteractNow => !Menus.AnyOpen && !Controller.IsBusy;
 
+    InteractPrompt _prompt;
     InputSystem_Actions _input;
     PlayerController _controller;
     Transform _tf;
@@ -43,6 +44,10 @@ public class PlayerInteractor : MonoBehaviour
     {
         _tf = transform;
         _rangeSq = range * range;
+
+        // found with inactive included: the prompt is saved disabled so it does not
+        // clutter the editor view, and it only switches itself on when there is a target.
+        _prompt = FindAnyObjectByType<InteractPrompt>(FindObjectsInactive.Include);
 
         _input ??= new InputSystem_Actions();
         _input.Player.Enable();
@@ -66,6 +71,13 @@ public class PlayerInteractor : MonoBehaviour
         {
             Current.Interact(this);
         }
+    }
+
+    // Driven from here rather than from the prompt's own Update, so the prompt object can
+    // stay disabled in the scene. LateUpdate so it reads the focus picked this frame.
+    void LateUpdate()
+    {
+        if (_prompt != null) _prompt.Show(CanInteractNow ? Current : null);
     }
 
     void UpdateFocus()
