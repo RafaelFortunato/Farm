@@ -18,3 +18,6 @@ MonoBehaviour:
   clip: {fileID: -203655887218126122, guid: d93de9eaafa3402488b2e9a9a6259b54, type: 3}
   crouch: 0.3
   lean: 22
+  cameraZoom: 5
+  cameraPitch: -8
+  cameraBlend: 0.35

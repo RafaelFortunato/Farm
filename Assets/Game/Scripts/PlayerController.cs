@@ -54,6 +54,7 @@ public class PlayerController : MonoBehaviour
     // cached in OnEnable - Update does no lookups and no null checks
     Transform _tf;
     Transform _cam;
+    CameraFollow _cameraRig;
     Animator _animator;
     float _invMoveSpeed;
     Vector3 _visualBaseLocalPos;
@@ -80,6 +81,7 @@ public class PlayerController : MonoBehaviour
     {
         _tf = transform;
         _cam = Camera.main.transform;
+        _cameraRig = _cam.GetComponent<CameraFollow>();
 
         if (visual == null && _tf.childCount > 0) visual = _tf.GetChild(0);
         _animator = visual.GetComponent<Animator>();
@@ -127,6 +129,9 @@ public class PlayerController : MonoBehaviour
             to.y = 0f;
             if (to.sqrMagnitude > 0.0001f) _tf.rotation = Quaternion.LookRotation(to.normalized);
         }
+
+        // the beat can ask the camera to lean in on it
+        _cameraRig.SetActionFraming(action.cameraZoom, action.cameraPitch, action.cameraBlend);
 
         _animator.SetFloat(SpeedHash, 0f);
         if (!action.UsesProceduralPose)
@@ -208,6 +213,8 @@ public class PlayerController : MonoBehaviour
 
     void EndAction()
     {
+        _cameraRig.ClearActionFraming();
+
         if (_action.UsesProceduralPose)
         {
             visual.localPosition = _visualBaseLocalPos;

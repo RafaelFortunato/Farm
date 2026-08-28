@@ -31,6 +31,14 @@ public class CharacterAction : ScriptableObject
     [Tooltip("How far the character leans forward at the middle of the beat, in degrees.")]
     public float lean = 22f;
 
+    [Header("Camera framing")]
+    [Tooltip("How far the camera pushes in during the beat, in world units. 0 leaves it alone.")]
+    public float cameraZoom;
+    [Tooltip("Extra downward tilt during the beat, in degrees. Positive looks further down.")]
+    public float cameraPitch;
+    [Tooltip("Seconds the camera takes to ease in, and to ease back out afterwards.")]
+    public float cameraBlend = 0.35f;
+
     /// <summary>True while no clip is authored, so the stand-in pose should play.</summary>
     public bool UsesProceduralPose => string.IsNullOrEmpty(animatorTrigger);
 
