@@ -69,6 +69,12 @@ public class TruckOrder : MonoBehaviour
                 go.transform.localRotation = Quaternion.identity;
                 go.transform.localScale = Vector3.one * modelScale;
                 foreach (var c in go.GetComponentsInChildren<Collider>(true)) Destroy(c);
+                // a model floating inside a badge should not lay a shadow across the truck
+                foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+                {
+                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    r.receiveShadows = false;
+                }
                 // the harvest pickup script would fly it to the player
                 var col = go.GetComponent<Collectable>();
                 if (col != null) Destroy(col);
