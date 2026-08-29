@@ -164,9 +164,7 @@ public class SoilPlot : Interactable
     {
         if (_state != PlotState.Ready || _crop == null) return;
 
-        var prefab = _crop.collectablePrefab != null
-            ? _crop.collectablePrefab
-            : _crop.StagePrefab(_crop.StageCount - 1);
+        var prefab = _crop.DisplayPrefab;
 
         if (prefab != null)
         {
@@ -174,7 +172,7 @@ public class SoilPlot : Interactable
             var go = Instantiate(prefab, spawnAt, Quaternion.identity);
             var col = go.GetComponent<Collectable>();
             if (col == null) col = go.AddComponent<Collectable>();
-            col.crop = _crop;
+            col.item = _crop;
             col.amount = 1;
         }
 

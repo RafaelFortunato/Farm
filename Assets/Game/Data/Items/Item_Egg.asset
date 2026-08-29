@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a34094f26c19a9b4b9a1b413866b8f20, type: 3}
+  m_Name: Item_Egg
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDef
+  displayName: Egg
+  tintColor: {r: 0.9607843, g: 0.89411765, b: 0.6901961, a: 1}
+  icon: {fileID: 21300000, guid: f2ccf3c2ebca3f5429912b388d780b5b, type: 3}
+  sellValue: 15
+  worldPrefab: {fileID: 4077141521328887635, guid: 26dd2342357dc454bb29148a4339dd1d, type: 3}
+  iconScale: 1

@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: Crop_Carrot
   m_EditorClassIdentifier: Assembly-CSharp::CropDef
   displayName: Carrot
-  menuColor: {r: 1, g: 0.62, b: 0.28, a: 1}
+  tintColor: {r: 1, g: 0.61960787, b: 0.2784314, a: 1}
+  icon: {fileID: 21300000, guid: 15b37e23ee0fe8a4b861f51acfa4c986, type: 3}
+  sellValue: 14
+  worldPrefab: {fileID: 0}
+  iconScale: 1
   stagePrefabs:
   - {fileID: 2582875128571546930, guid: f4ea6b9d24fd2164795278fa98ffb6c1, type: 3}
   - {fileID: 3856223855077511753, guid: 1a0fc3072ca96ec4283af64115b956a1, type: 3}
@@ -22,5 +26,3 @@ MonoBehaviour:
   stageScales: []
   growSeconds: 15
   seedCost: 0
-  sellValue: 14
-  collectablePrefab: {fileID: 0}

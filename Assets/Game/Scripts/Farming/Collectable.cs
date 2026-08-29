@@ -7,7 +7,7 @@ using UnityEngine;
 public class Collectable : MonoBehaviour
 {
     [Header("Value")]
-    public CropDef crop;
+    public ItemDef item;
     public int amount = 1;
 
     [Header("Pop")]
@@ -80,7 +80,7 @@ public class Collectable : MonoBehaviour
 
     void Collect()
     {
-        Inventory.AddProduce(crop, amount);
+        Inventory.AddProduce(item, amount);
         Destroy(gameObject);
     }
 }

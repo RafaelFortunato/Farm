@@ -17,7 +17,9 @@ public static class Inventory
     public const int StartingCoins = 30;
 
     static readonly Dictionary<CropDef, int> SeedBag = new Dictionary<CropDef, int>();
-    static readonly Dictionary<CropDef, int> ProduceCrate = new Dictionary<CropDef, int>();
+    // Produce is keyed by ItemDef, not CropDef: eggs, milk and cake are held the same way a
+    // harvested carrot is. Seeds stay CropDef - only something you plant can have a seed.
+    static readonly Dictionary<ItemDef, int> ProduceCrate = new Dictionary<ItemDef, int>();
 
     public static int Coins { get; private set; } = StartingCoins;
 
@@ -50,25 +52,25 @@ public static class Inventory
 
     // --- produce: what a finished plot yields ---
 
-    public static int ProduceCount(CropDef crop) => Count(ProduceCrate, crop);
+    public static int ProduceCount(ItemDef item) => Count(ProduceCrate, item);
 
-    public static void AddProduce(CropDef crop, int amount)
+    public static void AddProduce(ItemDef item, int amount)
     {
-        if (crop == null || amount == 0) return;
-        ProduceCrate.TryGetValue(crop, out int n);
-        ProduceCrate[crop] = n + amount;
+        if (item == null || amount == 0) return;
+        ProduceCrate.TryGetValue(item, out int n);
+        ProduceCrate[item] = n + amount;
         Changed?.Invoke();
     }
 
     /// <summary>Hands produce over to fill an order. False when the crate is short.</summary>
-    public static bool TrySpendProduce(CropDef crop, int amount)
+    public static bool TrySpendProduce(ItemDef item, int amount)
     {
-        if (crop == null || amount <= 0) return false;
+        if (item == null || amount <= 0) return false;
 
-        ProduceCrate.TryGetValue(crop, out int n);
+        ProduceCrate.TryGetValue(item, out int n);
         if (n < amount) return false;
 
-        ProduceCrate[crop] = n - amount;
+        ProduceCrate[item] = n - amount;
         Changed?.Invoke();
         return true;
     }
@@ -89,10 +91,10 @@ public static class Inventory
         Changed?.Invoke();
     }
 
-    static int Count(Dictionary<CropDef, int> bag, CropDef crop)
+    static int Count<T>(Dictionary<T, int> bag, T key) where T : ScriptableObject
     {
-        if (crop == null) return 0;
-        return bag.TryGetValue(crop, out int n) ? n : 0;
+        if (key == null) return 0;
+        return bag.TryGetValue(key, out int n) ? n : 0;
     }
 
     /// <summary>Clears everything. Called on a fresh run so play-mode state never leaks.</summary>

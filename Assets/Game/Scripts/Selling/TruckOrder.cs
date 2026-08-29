@@ -24,7 +24,7 @@ public class TruckOrder : MonoBehaviour
     public float modelScale = 0.5f;
     public float spinSpeed = 45f;
 
-    public CropDef Wanted { get; private set; }
+    public ItemDef Wanted { get; private set; }
     public int Amount { get; private set; }
 
     /// <summary>Coins paid when this order is filled.</summary>
@@ -33,7 +33,7 @@ public class TruckOrder : MonoBehaviour
     /// <summary>True once the truck has finished rolling to its slot.</summary>
     public bool Arrived => !_moving;
 
-    readonly Dictionary<CropDef, GameObject> _models = new Dictionary<CropDef, GameObject>();
+    readonly Dictionary<ItemDef, GameObject> _models = new Dictionary<ItemDef, GameObject>();
     Transform _tf;
     Transform _cam;
     Vector3 _target;
@@ -47,7 +47,7 @@ public class TruckOrder : MonoBehaviour
     }
 
     /// <summary>Give this truck an order. Safe to call repeatedly as it is recycled.</summary>
-    public void Configure(CropDef crop, int amount)
+    public void Configure(ItemDef crop, int amount)
     {
         Wanted = crop;
         Amount = amount;
@@ -60,9 +60,7 @@ public class TruckOrder : MonoBehaviour
 
         if (crop != null && !_models.ContainsKey(crop))
         {
-            var prefab = crop.collectablePrefab != null
-                ? crop.collectablePrefab
-                : crop.StagePrefab(crop.StageCount - 1);
+            var prefab = crop.DisplayPrefab;
 
             if (prefab != null && modelAnchor != null)
             {

@@ -24,7 +24,7 @@ public class TruckQueue : MonoBehaviour
     [SerializeField] Transform exitPoint;
 
     [Header("Orders")]
-    [SerializeField] CropDef[] wanted;
+    [SerializeField] ItemDef[] wanted;
     [SerializeField] int minAmount = 1;
     [SerializeField] int maxAmount = 4;
 
@@ -58,7 +58,7 @@ public class TruckQueue : MonoBehaviour
         for (int i = 0; i < slots.Length; i++)
         {
             var t = Rent();
-            t.Configure(PickCrop(), PickAmount());
+            t.Configure(PickItem(), PickAmount());
             t.MoveTo(slots[i].position, driveSpeed, true);   // first fill snaps, no convoy sliding in
             t.ShowBadge(true);
             _queue.Add(t);
@@ -86,7 +86,7 @@ public class TruckQueue : MonoBehaviour
             _queue[i].MoveTo(slots[i].position, driveSpeed);
 
         var fresh = Rent();
-        fresh.Configure(PickCrop(), PickAmount());
+        fresh.Configure(PickItem(), PickAmount());
         fresh.transform.position = spawnPoint.position;
         fresh.MoveTo(slots[_queue.Count].position, driveSpeed);
         fresh.ShowBadge(true);
@@ -143,7 +143,7 @@ public class TruckQueue : MonoBehaviour
         t.gameObject.SetActive(false);
     }
 
-    CropDef PickCrop() => wanted != null && wanted.Length > 0 ? wanted[Random.Range(0, wanted.Length)] : null;
+    ItemDef PickItem() => wanted != null && wanted.Length > 0 ? wanted[Random.Range(0, wanted.Length)] : null;
     int PickAmount() => Random.Range(minAmount, maxAmount + 1);
 
     /// <summary>How many truck objects exist. Should settle at slots + 1 and stop growing.</summary>

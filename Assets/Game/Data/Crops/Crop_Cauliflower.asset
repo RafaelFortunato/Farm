@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: Crop_Cauliflower
   m_EditorClassIdentifier: Assembly-CSharp::CropDef
   displayName: Cauliflower
-  menuColor: {r: 0.85, g: 0.88, b: 0.7, a: 1}
+  tintColor: {r: 0.8509804, g: 0.8784314, b: 0.69803923, a: 1}
+  icon: {fileID: 21300000, guid: d3339ba6f50c6f14fb3d178f29aff0e5, type: 3}
+  sellValue: 20
+  worldPrefab: {fileID: 0}
+  iconScale: 1
   stagePrefabs:
   - {fileID: 3177982295653799335, guid: d8449dba764bea44ab90269de06a50d0, type: 3}
   - {fileID: 6421724360372590781, guid: 37774da3967f68340b832156ac4a51c8, type: 3}
@@ -22,5 +26,3 @@ MonoBehaviour:
   stageScales: []
   growSeconds: 22
   seedCost: 8
-  sellValue: 20
-  collectablePrefab: {fileID: 0}

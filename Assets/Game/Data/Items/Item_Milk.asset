@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a34094f26c19a9b4b9a1b413866b8f20, type: 3}
+  m_Name: Item_Milk
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDef
+  displayName: Milk
+  tintColor: {r: 0.9098039, g: 0.9490196, b: 1, a: 1}
+  icon: {fileID: 21300000, guid: f2bfa46743759e5479d6ff49902cb452, type: 3}
+  sellValue: 22
+  worldPrefab: {fileID: 5697800158797286517, guid: e27740dc0f71e6242933939d6050fd41, type: 3}
+  iconScale: 1
