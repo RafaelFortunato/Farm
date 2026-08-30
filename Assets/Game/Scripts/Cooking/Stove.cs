@@ -98,7 +98,7 @@ public class Stove : Interactable, ITimedProgress
         switch (_state)
         {
             case StoveState.Idle:
-                RecipeMenu.Instance?.Open(this, interactor);
+                UIManager.Kitchen.Open(this, interactor);
                 break;
             case StoveState.Ready:
                 // The dish pops out at the end of the beat, so the animation reads as its cause.

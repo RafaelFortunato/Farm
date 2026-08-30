@@ -126,7 +126,7 @@ public class SoilPlot : Interactable, ITimedProgress
         switch (_state)
         {
             case PlotState.Empty:
-                SeedMenu.Instance?.Open(this, interactor);
+                UIManager.Seeds.Open(this, interactor);
                 break;
             case PlotState.Ready:
                 // The crop pops out at the end of the beat, so the dip reads as its cause.

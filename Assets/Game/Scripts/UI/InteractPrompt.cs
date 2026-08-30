@@ -34,7 +34,7 @@ public class InteractPrompt : MonoBehaviour
     {
         if (_ready) return;
         _tf = transform;
-        _cam = Camera.main.transform;
+        _cam = GameManager.CameraTransform;
         _ready = true;
     }
 

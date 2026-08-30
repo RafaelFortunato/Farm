@@ -16,7 +16,6 @@ public class Store : Interactable
 
     public override void Interact(PlayerInteractor interactor)
     {
-        if (StoreMenu.Instance == null) return;
-        StoreMenu.Instance.Open(stock, interactor);
+        UIManager.Shop.Open(stock, interactor);
     }
 }

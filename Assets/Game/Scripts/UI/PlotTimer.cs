@@ -36,7 +36,7 @@ public class PlotTimer : MonoBehaviour
     {
         _tf = transform;
         _source = source as ITimedProgress ?? GetComponentInParent<ITimedProgress>();
-        _cam = Camera.main.transform;
+        _cam = GameManager.CameraTransform;
         if (canvasRoot != null) canvasRoot.SetActive(false);
     }
 

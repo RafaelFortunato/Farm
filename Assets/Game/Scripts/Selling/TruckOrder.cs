@@ -40,10 +40,12 @@ public class TruckOrder : MonoBehaviour
     float _speed;
     bool _moving;
 
-    void Awake()
+    // OnEnable, not Awake: GameManager only guarantees its references from OnEnable onward,
+    // and a pooled truck re-enables on every rent, so this is the natural home for it too.
+    void OnEnable()
     {
         _tf = transform;
-        _cam = Camera.main.transform;
+        _cam = GameManager.CameraTransform;
     }
 
     /// <summary>Give this truck an order. Safe to call repeatedly as it is recycled.</summary>

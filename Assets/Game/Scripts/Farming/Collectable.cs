@@ -1,8 +1,17 @@
 using UnityEngine;
 
 /// <summary>
-/// A harvested item that pops out of a plot, bobs, and is picked up when the player
-/// comes near. Self-contained so a plot can spawn one and forget about it.
+/// A harvested item that pops out of whatever produced it, then flies to the player.
+///
+/// It always flies, whatever the distance. It used to sit and wait for the player to come
+/// within collectRadius, but the player can harvest from PlayerInteractor.range (2.5 units)
+/// while the item only homed from 1.6 - so anything picked at arm's length was simply left
+/// lying in the field. Distance was never a meaningful lever here: by the time this spawns
+/// the item is already earned, and the flight is the payoff animation, not a second hurdle.
+///
+/// The player comes from GameManager, read once and held. Several of these can be in flight
+/// at once and they run every frame, so this is the last place that should be hunting through
+/// the scene for anything.
 /// </summary>
 public class Collectable : MonoBehaviour
 {
@@ -14,35 +23,32 @@ public class Collectable : MonoBehaviour
     public float popHeight = 0.9f;
     public float popSeconds = 0.35f;
 
-    [Header("Idle bob")]
-    public float bobHeight = 0.12f;
-    public float bobSpeed = 2.5f;
+    [Header("Flight")]
+    [Tooltip("Comfortably faster than the player, so it closes even on someone running away.")]
+    public float flySpeed = 12f;
+    [Tooltip("How close to the player it has to get to count as caught.")]
+    public float catchDistance = 0.2f;
     public float spinSpeed = 60f;
-
-    [Header("Collect")]
-    [Tooltip("Player gets this close and it flies to them.")]
-    public float collectRadius = 1.6f;
-    public float flySpeed = 9f;
 
     Transform _tf;
     Transform _player;
-    Vector3 _restPos;
-    float _t;
-    float _bobPhase;
-    enum State { Popping, Waiting, Flying }
-    State _state = State.Popping;
     Vector3 _popFrom, _popTo;
+    float _t;
+
+    enum State { Popping, Flying }
+    State _state = State.Popping;
 
     void Awake()
     {
         _tf = transform;
-        var pc = FindAnyObjectByType<PlayerController>();
-        if (pc != null) _player = pc.transform;
-
         _popFrom = _tf.position;
-        _popTo = _popFrom + Vector3.up * popHeight + new Vector3(Random.Range(-0.3f, 0.3f), 0f, Random.Range(-0.3f, 0.3f));
-        _restPos = _popTo;
+        _popTo = _popFrom + Vector3.up * popHeight
+               + new Vector3(Random.Range(-0.3f, 0.3f), 0f, Random.Range(-0.3f, 0.3f));
     }
+
+    // GameManager only guarantees its references from OnEnable onward, so the player is read
+    // here rather than in Awake.
+    void OnEnable() => _player = GameManager.PlayerTransform;
 
     void Update()
     {
@@ -53,27 +59,16 @@ public class Collectable : MonoBehaviour
         {
             case State.Popping:
                 _t += dt / Mathf.Max(popSeconds, 0.01f);
-                if (_t >= 1f) { _t = 1f; _state = State.Waiting; }
-                // ease out so it decelerates as it reaches the top
+                if (_t >= 1f) { _t = 1f; _state = State.Flying; }
+                // ease out, so it decelerates as it reaches the top of the arc
                 float e = 1f - (1f - _t) * (1f - _t);
                 _tf.position = Vector3.Lerp(_popFrom, _popTo, e);
                 break;
 
-            case State.Waiting:
-                _bobPhase += dt * bobSpeed;
-                _tf.position = _restPos + Vector3.up * (Mathf.Sin(_bobPhase) * bobHeight);
-                if (_player != null)
-                {
-                    Vector3 d = _player.position - _tf.position;
-                    if (d.x * d.x + d.z * d.z <= collectRadius * collectRadius) _state = State.Flying;
-                }
-                break;
-
             case State.Flying:
-                if (_player == null) { Destroy(gameObject); return; }
                 Vector3 target = _player.position + Vector3.up * 0.6f;
                 _tf.position = Vector3.MoveTowards(_tf.position, target, flySpeed * dt);
-                if ((target - _tf.position).sqrMagnitude < 0.04f) Collect();
+                if ((target - _tf.position).sqrMagnitude < catchDistance * catchDistance) Collect();
                 break;
         }
     }
@@ -81,6 +76,10 @@ public class Collectable : MonoBehaviour
     void Collect()
     {
         Inventory.AddProduce(item, amount);
-        Destroy(gameObject);
+
+        // guarded the way SoilPlot and TruckOrder do it, so editor tooling can drive a pickup
+        // without Unity refusing the destroy and the item collecting itself every frame
+        if (Application.isPlaying) Destroy(gameObject);
+        else DestroyImmediate(gameObject);
     }
 }

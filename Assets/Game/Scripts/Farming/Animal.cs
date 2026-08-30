@@ -76,8 +76,7 @@ public class Animal : Interactable
     {
         base.OnEnable();
         _tf = transform;
-        var cam = Camera.main;
-        _cam = cam != null ? cam.transform : null;
+        _cam = GameManager.CameraTransform;
 
         if (visual == null) visual = _tf.Find("Body");
         if (visual != null)

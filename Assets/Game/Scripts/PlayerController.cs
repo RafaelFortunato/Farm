@@ -80,8 +80,8 @@ public class PlayerController : MonoBehaviour
     void OnEnable()
     {
         _tf = transform;
-        _cam = Camera.main.transform;
-        _cameraRig = _cam.GetComponent<CameraFollow>();
+        _cam = GameManager.CameraTransform;
+        _cameraRig = GameManager.CameraRig;
 
         if (visual == null && _tf.childCount > 0) visual = _tf.GetChild(0);
         _animator = visual.GetComponent<Animator>();

@@ -9,21 +9,6 @@ using UnityEngine.UI;
 /// </summary>
 public class SeedMenu : MonoBehaviour
 {
-    /// <summary>
-    /// Found lazily, INCLUDING while disabled. The panel is saved deactivated so it does
-    /// not clutter the editor view, which means OnEnable has not run and cannot have
-    /// registered anything - so the lookup has to tolerate an inactive object.
-    /// </summary>
-    public static SeedMenu Instance
-    {
-        get
-        {
-            if (_instance == null) _instance = FindAnyObjectByType<SeedMenu>(FindObjectsInactive.Include);
-            return _instance;
-        }
-    }
-    static SeedMenu _instance;
-
     /// <summary>True while the menu is up, so gameplay input can ignore Interact.</summary>
     public static bool IsOpen { get; private set; }
 
@@ -40,11 +25,8 @@ public class SeedMenu : MonoBehaviour
     SoilPlot _target;
     PlayerInteractor _interactor;
 
-    void OnEnable() => _instance = this;
-
     void OnDestroy()
     {
-        if (_instance == this) _instance = null;
         IsOpen = false;
     }
 

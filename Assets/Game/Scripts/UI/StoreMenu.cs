@@ -9,21 +9,6 @@ using UnityEngine.UI;
 /// </summary>
 public class StoreMenu : MonoBehaviour
 {
-    /// <summary>
-    /// Found lazily, INCLUDING while disabled. The panel is saved deactivated so it does
-    /// not clutter the editor view, which means OnEnable has not run and cannot have
-    /// registered anything - so the lookup has to tolerate an inactive object.
-    /// </summary>
-    public static StoreMenu Instance
-    {
-        get
-        {
-            if (_instance == null) _instance = FindAnyObjectByType<StoreMenu>(FindObjectsInactive.Include);
-            return _instance;
-        }
-    }
-    static StoreMenu _instance;
-
     /// <summary>True while the shop is up, so gameplay input can ignore Interact.</summary>
     public static bool IsOpen { get; private set; }
 
@@ -47,11 +32,8 @@ public class StoreMenu : MonoBehaviour
     CropDef[] _stock;
     PlayerInteractor _interactor;
 
-    void OnEnable() => _instance = this;
-
     void OnDestroy()
     {
-        if (_instance == this) _instance = null;
         IsOpen = false;
     }
 
@@ -65,7 +47,7 @@ public class StoreMenu : MonoBehaviour
 
         // same push-in the planting beat uses, so talking to the shopkeeper gets the
         // same emphasis. Resolved here rather than in OnEnable: this object starts disabled.
-        if (_cameraRig == null) _cameraRig = Camera.main.GetComponent<CameraFollow>();
+        if (_cameraRig == null) _cameraRig = GameManager.CameraRig;
         _cameraRig.SetActionFraming(cameraZoom, cameraPitch, cameraBlend);
 
         if (closeButton != null)

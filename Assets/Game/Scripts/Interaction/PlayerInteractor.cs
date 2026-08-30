@@ -45,9 +45,9 @@ public class PlayerInteractor : MonoBehaviour
         _tf = transform;
         _rangeSq = range * range;
 
-        // found with inactive included: the prompt is saved disabled so it does not
-        // clutter the editor view, and it only switches itself on when there is a target.
-        _prompt = FindAnyObjectByType<InteractPrompt>(FindObjectsInactive.Include);
+        // wired on the UIManager: the prompt is saved disabled so it does not clutter the
+        // editor view, and a disabled object cannot announce itself.
+        _prompt = UIManager.Prompt;
 
         _input ??= new InputSystem_Actions();
         _input.Player.Enable();
