@@ -9,7 +9,7 @@ using UnityEngine.UI;
 /// </summary>
 public static class Menus
 {
-    public static bool AnyOpen => SeedMenu.IsOpen || StoreMenu.IsOpen;
+    public static bool AnyOpen => SeedMenu.IsOpen || StoreMenu.IsOpen || RecipeMenu.IsOpen;
 
     /// <summary>
     /// Settle a panel's layout immediately, innermost first.

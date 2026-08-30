@@ -2,18 +2,23 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Radial countdown floating over a plot while its crop grows.
+/// Radial countdown floating over whatever the player is waiting on - a growing crop, a
+/// cooking stove.
 ///
-/// Lives on a world-space canvas so it sits in the scene rather than the HUD, which keeps
-/// it readable when several plots are growing at once. The canvas is switched off unless
-/// the plot is actually growing, so idle plots cost nothing per frame.
+/// Lives on a world-space canvas so it sits in the scene rather than the HUD, which keeps it
+/// readable when several things are running at once. The canvas is switched off unless its
+/// source is actually counting, so idle plots cost nothing per frame.
+///
+/// The source is found on a parent rather than wired by hand: the ring is always a child of
+/// the thing it counts, and that is what let the stove reuse this instead of getting a
+/// second copy of it.
 /// </summary>
 public class PlotTimer : MonoBehaviour
 {
-    [Tooltip("Plot this timer belongs to. Found on a parent if left empty.")]
-    public SoilPlot plot;
+    [Tooltip("What this ring counts down. Must implement ITimedProgress. Found on a parent if left empty.")]
+    [SerializeField] MonoBehaviour source;
 
-    [Tooltip("Canvas object toggled on only while growing.")]
+    [Tooltip("Canvas object toggled on only while the clock is running.")]
     public GameObject canvasRoot;
 
     [Tooltip("Radial-filled ring showing progress.")]
@@ -25,32 +30,33 @@ public class PlotTimer : MonoBehaviour
 
     Transform _tf;
     Transform _cam;
+    ITimedProgress _source;
 
     void OnEnable()
     {
         _tf = transform;
-        if (plot == null) plot = GetComponentInParent<SoilPlot>();
+        _source = source as ITimedProgress ?? GetComponentInParent<ITimedProgress>();
         _cam = Camera.main.transform;
         if (canvasRoot != null) canvasRoot.SetActive(false);
     }
 
     void LateUpdate()
     {
-        bool growing = plot != null && plot.Current == PlotState.Growing;
+        bool running = _source != null && _source.InProgress;
 
-        if (canvasRoot != null && canvasRoot.activeSelf != growing)
-            canvasRoot.SetActive(growing);
+        if (canvasRoot != null && canvasRoot.activeSelf != running)
+            canvasRoot.SetActive(running);
 
-        if (!growing) return;
+        if (!running) return;
 
-        float p = plot.Progress;
+        float p = _source.Progress;
         if (fillImage != null)
         {
             fillImage.fillAmount = p;
             fillImage.color = p > 0.75f ? nearlyDoneColor : growingColor;
         }
 
-        // face the camera - cheap, and only runs for plots that are actually growing
+        // face the camera - cheap, and only runs for rings that are actually counting
         _tf.rotation = _cam.rotation;
     }
 }

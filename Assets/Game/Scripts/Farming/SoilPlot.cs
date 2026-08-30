@@ -7,7 +7,7 @@ using UnityEngine;
 /// Growth runs on elapsed real time so a throttled browser tab catches up on focus
 /// rather than losing progress.
 /// </summary>
-public class SoilPlot : Interactable
+public class SoilPlot : Interactable, ITimedProgress
 {
     [Header("Wiring")]
     [Tooltip("Where the crop model is parented. Defaults to a child named CropAnchor.")]
@@ -30,6 +30,9 @@ public class SoilPlot : Interactable
 
     public PlotState Current => _state;
     public CropDef Crop => _crop;
+
+    /// <summary>True while the crop is growing, so the countdown ring shows itself.</summary>
+    public bool InProgress => _state == PlotState.Growing;
 
     /// <summary>0..1 through the growth timer.</summary>
     public float Progress
