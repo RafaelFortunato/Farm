@@ -31,7 +31,7 @@ public class RecipeRow : MonoBehaviour
         _recipe = recipe;
         if (recipe == null) return;
 
-        if (nameLabel != null) nameLabel.text = recipe.DisplayName.ToUpperInvariant();
+        if (nameLabel != null) nameLabel.text = recipe.DisplayName;
         if (ingredientsLabel != null) ingredientsLabel.text = recipe.IngredientSummary;
         if (timeLabel != null) timeLabel.text = Mathf.RoundToInt(recipe.cookSeconds) + "s";
 

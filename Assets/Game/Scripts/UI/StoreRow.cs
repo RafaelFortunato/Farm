@@ -22,7 +22,7 @@ public class StoreRow : MonoBehaviour
         _crop = crop;
         if (crop == null) return;
 
-        if (nameLabel != null) nameLabel.text = crop.displayName.ToUpperInvariant();
+        if (nameLabel != null) nameLabel.text = crop.displayName;
 
         // a free seed shows the word, not a zero next to a coin
         bool free = crop.seedCost <= 0;

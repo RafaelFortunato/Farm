@@ -20486,12 +20486,51 @@ MonoBehaviour:
   - {fileID: 188914085}
   spawnPoint: {fileID: 1478720162}
   exitPoint: {fileID: 1144778571}
-  wanted:
-  - {fileID: 11400000, guid: 9c1a7beb05a95c84da19a60ab8bc3880, type: 2}
-  - {fileID: 11400000, guid: 72b965e1b93775e4d88f602590e79825, type: 2}
-  - {fileID: 11400000, guid: a45b72a9679d24d46bd6e32f7634903c, type: 2}
-  minAmount: 1
-  maxAmount: 4
+  demands:
+  - item: {fileID: 11400000, guid: 9c1a7beb05a95c84da19a60ab8bc3880, type: 2}
+    weightAtStart: 30
+    weightAtTop: 8
+    minLevel: 1
+    minAmount: 2
+    maxAmount: 5
+  - item: {fileID: 11400000, guid: 72b965e1b93775e4d88f602590e79825, type: 2}
+    weightAtStart: 24
+    weightAtTop: 8
+    minLevel: 1
+    minAmount: 2
+    maxAmount: 4
+  - item: {fileID: 11400000, guid: a45b72a9679d24d46bd6e32f7634903c, type: 2}
+    weightAtStart: 20
+    weightAtTop: 8
+    minLevel: 1
+    minAmount: 2
+    maxAmount: 4
+  - item: {fileID: 11400000, guid: 160ee6bc915f7f54b88d9071ec3b2b38, type: 2}
+    weightAtStart: 14
+    weightAtTop: 12
+    minLevel: 2
+    minAmount: 2
+    maxAmount: 3
+  - item: {fileID: 11400000, guid: 6f84a7ab5794b8643bdadac7d1706bb3, type: 2}
+    weightAtStart: 12
+    weightAtTop: 12
+    minLevel: 3
+    minAmount: 1
+    maxAmount: 2
+  - item: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
+    weightAtStart: 10
+    weightAtTop: 22
+    minLevel: 3
+    minAmount: 1
+    maxAmount: 2
+  - item: {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
+    weightAtStart: 0
+    weightAtTop: 36
+    minLevel: 4
+    minAmount: 1
+    maxAmount: 1
+  level: 4
+  topLevel: 5
   driveSpeed: 6
 --- !u!1001 &1584020133
 PrefabInstance:

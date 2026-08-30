@@ -37,8 +37,8 @@ public class CropButton : MonoBehaviour
     public void SetStock(int seeds)
     {
         if (label != null && _crop != null)
-            label.text = string.Format("{0}   x{1}   {2}s",
-                _crop.displayName.ToUpperInvariant(), seeds, Mathf.RoundToInt(_crop.growSeconds));
+            label.text = string.Format("{0} / x{1} / {2}s",
+                _crop.displayName, seeds, Mathf.RoundToInt(_crop.growSeconds));
 
         if (button != null) button.interactable = seeds > 0;
     }

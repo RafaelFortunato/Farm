@@ -68,7 +68,7 @@ public class TruckOrder : MonoBehaviour
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localRotation = Quaternion.identity;
                 go.transform.localScale = Vector3.one * modelScale;
-                foreach (var c in go.GetComponentsInChildren<Collider>(true)) Destroy(c);
+                foreach (var c in go.GetComponentsInChildren<Collider>(true)) Discard(c);
                 // a model floating inside a badge should not lay a shadow across the truck
                 foreach (var r in go.GetComponentsInChildren<Renderer>(true))
                 {
@@ -77,11 +77,22 @@ public class TruckOrder : MonoBehaviour
                 }
                 // the harvest pickup script would fly it to the player
                 var col = go.GetComponent<Collectable>();
-                if (col != null) Destroy(col);
+                if (col != null) Discard(col);
                 _models[crop] = go;
             }
             else _models[crop] = null;
         }
+    }
+
+    /// <summary>
+    /// Destroy that also works outside play mode, the way SoilPlot already does it. Orders are
+    /// only configured at runtime in the real game, but an editor tool driving the queue would
+    /// otherwise leave the stripped colliders behind and log an error for each one.
+    /// </summary>
+    static void Discard(Object o)
+    {
+        if (Application.isPlaying) Destroy(o);
+        else DestroyImmediate(o);
     }
 
     /// <summary>Roll to a spot on the road. The truck drives itself the rest of the way.</summary>
