@@ -36364,7 +36364,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1011615041528041729, guid: 187a338ef1b48a24396a1d254681631f, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 478
       objectReference: {fileID: 0}
     - target: {fileID: 1419905015979419765, guid: 187a338ef1b48a24396a1d254681631f, type: 3}
       propertyPath: m_Name
@@ -36408,7 +36408,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3543103834543062977, guid: 187a338ef1b48a24396a1d254681631f, type: 3}
       propertyPath: m_text
-      value: 'Time<pos=58%>0:00
+      value: 'Time<pos=58%>0:09
 
         Coins<pos=58%>0
 
@@ -37376,6 +37376,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9007298591448809355, guid: 327034dfe5ca60f49b7484493bbbf596, type: 3}
+      propertyPath: _stored
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9007298591448809355, guid: 327034dfe5ca60f49b7484493bbbf596, type: 3}
+      propertyPath: definition
+      value: 
+      objectReference: {fileID: 11400000, guid: 80b2f234e9806d54989a3ad60d7a1a45, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -38293,21 +38301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainBuilding
   focusAnchor: {fileID: 1765764691}
-  upgrades:
-  - coinCost: 250
-    alsoNeeds: []
-  - coinCost: 450
-    alsoNeeds:
-    - item: {fileID: 11400000, guid: 160ee6bc915f7f54b88d9071ec3b2b38, type: 2}
-      count: 3
-  - coinCost: 700
-    alsoNeeds:
-    - item: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
-      count: 4
-  - coinCost: 1200
-    alsoNeeds:
-    - item: {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
-      count: 3
+  ladder: {fileID: 11400000, guid: f11448e918b1b274c937b90f915eafe9, type: 2}
   expansion: {fileID: 1175241798}
   stove: {fileID: 1727427879}
   truckQueue: {fileID: 1582858176}
@@ -44107,6 +44101,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9007298591448809355, guid: 327034dfe5ca60f49b7484493bbbf596, type: 3}
+      propertyPath: _stored
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9007298591448809355, guid: 327034dfe5ca60f49b7484493bbbf596, type: 3}
+      propertyPath: definition
+      value: 
+      objectReference: {fileID: 11400000, guid: 80b2f234e9806d54989a3ad60d7a1a45, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -44125,6 +44127,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 986602299}
     m_Modifications:
+    - target: {fileID: 1003716692103913482, guid: ec788cf802e0387448b206d06f9a742a, type: 3}
+      propertyPath: _stored
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1003716692103913482, guid: ec788cf802e0387448b206d06f9a742a, type: 3}
+      propertyPath: definition
+      value: 
+      objectReference: {fileID: 11400000, guid: 95b40d61a310a4945996bb67702cabdf, type: 2}
     - target: {fileID: 3721644336792539960, guid: ec788cf802e0387448b206d06f9a742a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6.2

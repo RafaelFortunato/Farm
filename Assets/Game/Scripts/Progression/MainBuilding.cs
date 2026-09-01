@@ -19,18 +19,10 @@ using UnityEngine;
 /// </summary>
 public class MainBuilding : Interactable
 {
-    [Serializable]
-    public class Upgrade
-    {
-        public int coinCost = 250;
-
-        [Tooltip("Produce this upgrade also consumes, on top of the coins.")]
-        public ItemStack[] alsoNeeds;
-    }
-
     [Header("Ladder")]
-    [Tooltip("One per step up. Entry 0 is the price of going from level 1 to level 2.")]
-    public Upgrade[] upgrades;
+    [Tooltip("What each step up costs. An asset rather than a list on this component, so the " +
+             "ladder sits beside the crops and recipes it has to stay in balance with.")]
+    public FarmhouseLadder ladder;
 
     [Header("Wiring")]
     public FarmExpansion expansion;
@@ -57,12 +49,12 @@ public class MainBuilding : Interactable
     public int Level => _level;
 
     /// <summary>The level that wins the game.</summary>
-    public int MaxLevel => upgrades != null ? upgrades.Length + 1 : 1;
+    public int MaxLevel => ladder != null ? ladder.Count + 1 : 1;
 
     public bool IsMaxLevel => _level >= MaxLevel;
 
     /// <summary>The next step up, or null once the farmhouse is finished.</summary>
-    public Upgrade Next => IsMaxLevel ? null : upgrades[_level - 1];
+    public FarmhouseLadder.Step Next => IsMaxLevel ? null : ladder.steps[_level - 1];
 
     public override bool CanInteract => !IsMaxLevel;
 
@@ -194,9 +186,9 @@ public class MainBuilding : Interactable
     /// </summary>
     int CakesBaked()
     {
-        if (upgrades == null || upgrades.Length == 0) return 0;
+        if (ladder == null || ladder.Count == 0) return 0;
 
-        var last = upgrades[upgrades.Length - 1];
+        var last = ladder.steps[ladder.Count - 1];
         if (last.alsoNeeds == null) return 0;
 
         int most = 0;

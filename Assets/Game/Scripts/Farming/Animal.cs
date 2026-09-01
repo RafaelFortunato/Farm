@@ -5,8 +5,8 @@ using UnityEngine;
 /// A farm animal that fills up with produce on a timer and hands over the whole store when
 /// the player walks up.
 ///
-/// Unlike a plot, an animal banks what it makes: it lays one every regrowSeconds up to
-/// `capacity` and then waits, so the player is free to be somewhere else instead of standing
+/// Unlike a plot, an animal banks what it makes: it lays one every regrowSeconds up to its
+/// capacity and then waits, so the player is free to be somewhere else instead of standing
 /// over it. The clock runs on elapsed real time and catches up in one go, so a throttled
 /// browser tab loses nothing.
 ///
@@ -18,15 +18,14 @@ using UnityEngine;
 public class Animal : Interactable
 {
     [Header("Produce")]
-    public ItemDef produces;
-    [Tooltip("Seconds to make one.")]
-    public float regrowSeconds = 30f;
-    [Tooltip("How many it banks before it stops making more.")]
-    public int capacity = 3;
+    [Tooltip("Species data: what it makes, how fast, and how much it banks. Both chickens share " +
+             "one asset, so retuning egg timing is a single edit.")]
+    public AnimalDef definition;
 
-    [Header("Player action")]
-    [Tooltip("Beat the player performs when collecting. Leave empty to collect instantly.")]
-    public CharacterAction collectAction;
+    public ItemDef Produces => definition.produces;
+    public float RegrowSeconds => definition.regrowSeconds;
+    public int Capacity => definition.capacity;
+    public CharacterAction CollectAction => definition.collectAction;
 
     [Header("Badge")]
     [Tooltip("Root of the floating badge, shown only while there is something to collect.")]
@@ -60,8 +59,8 @@ public class Animal : Interactable
 
     /// <summary>0..1 towards the next one. Sits at 1 once the animal is full.</summary>
     public float Progress =>
-        _stored >= capacity ? 1f
-        : Mathf.Clamp01(1f - (_nextAt - Time.time) / Mathf.Max(regrowSeconds, 0.01f));
+        _stored >= Capacity ? 1f
+        : Mathf.Clamp01(1f - (_nextAt - Time.time) / Mathf.Max(RegrowSeconds, 0.01f));
 
     public override bool CanInteract => _stored > 0;
 
@@ -88,7 +87,7 @@ public class Animal : Interactable
         // offset per instance so a pen full of chickens does not move in lockstep
         _phase = Random.value * Mathf.PI * 2f;
 
-        _nextAt = Time.time + regrowSeconds;
+        _nextAt = Time.time + RegrowSeconds;
         SetStored(_stored);
     }
 
@@ -107,10 +106,10 @@ public class Animal : Interactable
     /// <summary>Single place the count changes, so the prompt and badge cannot drift from it.</summary>
     void SetStored(int count)
     {
-        _stored = Mathf.Clamp(count, 0, Mathf.Max(capacity, 1));
+        _stored = Mathf.Clamp(count, 0, Mathf.Max(Capacity, 1));
 
-        _prompt = _stored > 0 && produces != null
-            ? "Collect " + _stored + " " + produces.displayName
+        _prompt = _stored > 0 && Produces != null
+            ? "Collect " + _stored + " " + Produces.displayName
             : string.Empty;
 
         if (countLabel != null) countLabel.text = "x" + _stored;
@@ -122,20 +121,20 @@ public class Animal : Interactable
     {
         float dt = Time.deltaTime;
 
-        if (_stored < capacity)
+        if (_stored < Capacity)
         {
             // Loop rather than a single check: after a backgrounded tab several may be due at
             // once, and the player should get all of them.
             int gained = 0;
-            while (Time.time >= _nextAt && _stored + gained < capacity)
+            while (Time.time >= _nextAt && _stored + gained < Capacity)
             {
                 gained++;
-                _nextAt += regrowSeconds;
+                _nextAt += RegrowSeconds;
             }
             if (gained > 0) SetStored(_stored + gained);
 
             // full now: hold the clock so it does not bank time it can never spend
-            if (_stored >= capacity) _nextAt = Time.time + regrowSeconds;
+            if (_stored >= Capacity) _nextAt = Time.time + RegrowSeconds;
         }
 
         if (visual != null)
@@ -158,15 +157,15 @@ public class Animal : Interactable
 
         // The produce pops out at the end of the beat, so the animation reads as its cause.
         // With no action wired the callback runs immediately, same as a plot's harvest.
-        interactor.Controller.BeginAction(collectAction, transform, Collect);
+        interactor.Controller.BeginAction(CollectAction, transform, Collect);
     }
 
     void Collect()
     {
-        if (_stored <= 0 || produces == null) return;
+        if (_stored <= 0 || Produces == null) return;
 
         int taken = _stored;
-        var prefab = produces.DisplayPrefab;
+        var prefab = Produces.DisplayPrefab;
 
         if (prefab != null)
         {
@@ -174,12 +173,12 @@ public class Animal : Interactable
             var go = Instantiate(prefab, spawnAt, Quaternion.identity);
             var col = go.GetComponent<Collectable>();
             if (col == null) col = go.AddComponent<Collectable>();
-            col.item = produces;
+            col.item = Produces;
             col.amount = taken;
         }
-        else Inventory.AddProduce(produces, taken);   // no model to fly over; still pay out
+        else Inventory.AddProduce(Produces, taken);   // no model to fly over; still pay out
 
-        _nextAt = Time.time + regrowSeconds;
+        _nextAt = Time.time + RegrowSeconds;
         SetStored(0);
     }
 }
