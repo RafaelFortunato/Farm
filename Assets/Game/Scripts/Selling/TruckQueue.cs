@@ -81,7 +81,12 @@ public class TruckQueue : MonoBehaviour
     {
         // rebuilt here rather than Awake so a domain reload during play restores the line
         if (_queue.Count == 0) Fill();
+
+        Inventory.Changed -= EnsureFrontReachable;   // never double-subscribe
+        Inventory.Changed += EnsureFrontReachable;
     }
+
+    void OnDisable() => Inventory.Changed -= EnsureFrontReachable;
 
     void Fill()
     {
@@ -89,7 +94,7 @@ public class TruckQueue : MonoBehaviour
         {
             var t = Rent();
             var d = PickDemand();
-            t.Configure(d.item, AmountFor(d));
+            t.Configure(d.item, ReachableAmount(d));
             t.MoveTo(slots[i].position, driveSpeed, true);   // first fill snaps, no convoy sliding in
             t.ShowBadge(true);
             _queue.Add(t);
@@ -118,7 +123,7 @@ public class TruckQueue : MonoBehaviour
 
         var fresh = Rent();
         var demand = PickDemand();
-        fresh.Configure(demand.item, AmountFor(demand));
+        fresh.Configure(demand.item, ReachableAmount(demand));
         fresh.transform.position = spawnPoint.position;
         fresh.MoveTo(slots[_queue.Count].position, driveSpeed);
         fresh.ShowBadge(true);
@@ -131,6 +136,7 @@ public class TruckQueue : MonoBehaviour
         }
 
         OrderVersion++;
+        EnsureFrontReachable();
     }
 
     void Update() => RecycleArrived();
@@ -196,13 +202,19 @@ public class TruckQueue : MonoBehaviour
     {
         if (demands == null || demands.Length == 0) return default;
 
+        // Only entries the player could actually deliver are in the running. See Reachable:
+        // the front truck blocks the queue and selling is the only income, so an order out of
+        // their reach does not slow the run down, it ends it.
         int total = 0;
-        for (int i = 0; i < demands.Length; i++) total += CurrentWeight(demands[i]);
+        for (int i = 0; i < demands.Length; i++)
+            if (Reachable(demands[i].item, demands[i].minAmount)) total += CurrentWeight(demands[i]);
 
-        // Nothing eligible would mean an empty badge and a stuck queue, so fall back to the
-        // first entry that has an item at all.
+        // Nothing eligible would mean an empty badge and a stuck queue, so fall back to
+        // whatever the player can always grow, and only then to any entry at all.
         if (total <= 0)
         {
+            for (int i = 0; i < demands.Length; i++)
+                if (Reachable(demands[i].item, demands[i].minAmount)) return demands[i];
             for (int i = 0; i < demands.Length; i++)
                 if (demands[i].item != null) return demands[i];
             return default;
@@ -211,10 +223,70 @@ public class TruckQueue : MonoBehaviour
         int roll = Random.Range(0, total);
         for (int i = 0; i < demands.Length; i++)
         {
+            if (!Reachable(demands[i].item, demands[i].minAmount)) continue;
             roll -= CurrentWeight(demands[i]);
             if (roll < 0) return demands[i];
         }
         return demands[demands.Length - 1];
+    }
+
+    /// <summary>
+    /// Could the player ever put this many on the counter? What they hold, plus the seed
+    /// already in the bag, plus every seed their coins can still buy. Animals and the stove
+    /// cost only time, and the free starter crop can always be replanted, so paid seed is the
+    /// only thing that can be genuinely out of reach.
+    ///
+    /// This is not a nicety. The front truck blocks the queue, Advance() runs only after a
+    /// completed sale, and selling is the only source of coins - so an order the player cannot
+    /// fund is not a setback, it is the end of the run. An opening order of 4 Cauliflower
+    /// against 30 starting coins did exactly that in about one game in seven.
+    /// </summary>
+    static bool Reachable(ItemDef item, int amount)
+    {
+        if (item == null) return false;
+
+        int held = Inventory.ProduceCount(item);
+        if (held >= amount) return true;
+
+        var crop = item as CropDef;
+        if (crop == null || crop.seedCost <= 0) return true;
+
+        int missing = amount - held - Inventory.SeedCount(crop);
+        return missing <= 0 || Inventory.Coins >= missing * crop.seedCost;
+    }
+
+    /// <summary>The rolled amount, trimmed to what the player can actually fund.</summary>
+    static int ReachableAmount(in Demand d)
+    {
+        int amount = AmountFor(d);
+        while (amount > d.minAmount && !Reachable(d.item, amount)) amount--;
+        return amount;
+    }
+
+    /// <summary>
+    /// Keeps the order at the counter inside the player's reach. It can fall outside it after
+    /// the fact - they spend their coins on seed for something else, and nothing can be sold
+    /// in the meantime to earn them back. Trimming what the truck asks for is the only move
+    /// that does not end the run, and it never asks for more than it did a moment ago.
+    /// </summary>
+    void EnsureFrontReachable()
+    {
+        var front = Front;
+        if (front == null || front.Wanted == null) return;
+        if (Reachable(front.Wanted, front.Amount)) return;
+
+        int amount = front.Amount;
+        while (amount > 1 && !Reachable(front.Wanted, amount)) amount--;
+
+        if (Reachable(front.Wanted, amount))
+            front.Configure(front.Wanted, amount);
+        else
+        {
+            var d = PickDemand();
+            front.Configure(d.item, ReachableAmount(d));
+        }
+
+        OrderVersion++;
     }
 
     static int AmountFor(in Demand d) =>

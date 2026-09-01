@@ -20,6 +20,7 @@ public static class Inventory
     // Produce is keyed by ItemDef, not CropDef: eggs, milk and cake are held the same way a
     // harvested carrot is. Seeds stay CropDef - only something you plant can have a seed.
     static readonly Dictionary<ItemDef, int> ProduceCrate = new Dictionary<ItemDef, int>();
+    static readonly Dictionary<ItemDef, int> LifetimeCrate = new Dictionary<ItemDef, int>();
 
     public static int Coins { get; private set; } = StartingCoins;
 
@@ -59,8 +60,20 @@ public static class Inventory
         if (item == null || amount == 0) return;
         ProduceCrate.TryGetValue(item, out int n);
         ProduceCrate[item] = n + amount;
+
+        // Tallied separately from the crate, which goes down again when things are spent.
+        // The end screen wants "how many cakes did you bake", not "how many are left over".
+        if (amount > 0)
+        {
+            LifetimeCrate.TryGetValue(item, out int total);
+            LifetimeCrate[item] = total + amount;
+        }
+
         Changed?.Invoke();
     }
+
+    /// <summary>Everything of this kind the farm has ever produced, spent or not.</summary>
+    public static int LifetimeProduced(ItemDef item) => Count(LifetimeCrate, item);
 
     /// <summary>Hands produce over to fill an order. False when the crate is short.</summary>
     public static bool TrySpendProduce(ItemDef item, int amount)
@@ -102,6 +115,7 @@ public static class Inventory
     {
         SeedBag.Clear();
         ProduceCrate.Clear();
+        LifetimeCrate.Clear();
         Coins = startingCoins;
         Changed?.Invoke();
     }
@@ -112,6 +126,7 @@ public static class Inventory
     {
         SeedBag.Clear();
         ProduceCrate.Clear();
+        LifetimeCrate.Clear();
         Coins = StartingCoins;
         Changed = null;
     }

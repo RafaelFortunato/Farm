@@ -54,7 +54,7 @@ public class RecipeRow : MonoBehaviour
 
         if (ingredientsLabel != null)
         {
-            ingredientsLabel.text = unlocked ? _recipe.IngredientSummary : "Needs stove " + _recipe.requiredLevel;
+            ingredientsLabel.text = unlocked ? _recipe.IngredientSummary : "Needs farmhouse Lv" + _recipe.requiredLevel;
             ingredientsLabel.color = unlocked && !affordable ? shortColor : affordableColor;
         }
 

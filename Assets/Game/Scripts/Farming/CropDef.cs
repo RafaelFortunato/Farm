@@ -18,8 +18,15 @@ public class CropDef : ItemDef
     [Tooltip("Seconds from planting to fully grown.")]
     public float growSeconds = 20f;
 
+    [Tooltip("How many items one planting yields. The ripe stage prefab should show this many - " +
+             "a plant bearing one carrot that hands over four reads as a bug, not a bonus.")]
+    [Min(1)] public int yieldPerHarvest = 1;
+
     [Header("Economy")]
     public int seedCost = 4;
+
+    [Tooltip("Farmhouse level the shop starts stocking this. 1 means available from the start.")]
+    public int requiredLevel = 1;
 
     public int StageCount => stagePrefabs != null ? stagePrefabs.Length : 0;
 

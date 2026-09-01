@@ -29,6 +29,7 @@ public class StoreMenu : MonoBehaviour
     CameraFollow _cameraRig;
 
     readonly System.Collections.Generic.List<StoreRow> _rows = new System.Collections.Generic.List<StoreRow>();
+    Store _store;
     CropDef[] _stock;
     PlayerInteractor _interactor;
 
@@ -37,9 +38,12 @@ public class StoreMenu : MonoBehaviour
         IsOpen = false;
     }
 
-    public void Open(CropDef[] stock, PlayerInteractor interactor = null)
+    public void Open(Store store, PlayerInteractor interactor = null)
     {
-        _stock = stock;
+        if (store == null) return;
+
+        _store = store;
+        _stock = store.stock;
         _interactor = interactor;
 
         gameObject.SetActive(true);              // this object is the toggle
@@ -67,6 +71,7 @@ public class StoreMenu : MonoBehaviour
 
     public void Close()
     {
+        _store = null;
         _interactor = null;
         IsOpen = false;
 
@@ -99,13 +104,17 @@ public class StoreMenu : MonoBehaviour
 
     void Refresh()
     {
+        if (_store == null) return;
+
         for (int i = 0; i < _rows.Count && i < _stock.Length; i++)
             if (_rows[i] != null && _stock[i] != null)
-                _rows[i].SetAffordable(Inventory.Coins >= _stock[i].seedCost);
+                _rows[i].SetAvailable(_store.IsUnlocked(_stock[i]), Inventory.Coins >= _stock[i].seedCost);
     }
 
     void Buy(CropDef crop)
     {
+        if (_store == null || !_store.IsUnlocked(crop)) return;
+
         // TrySpend covers the free seed too - spending 0 always succeeds
         if (!Inventory.TrySpend(crop.seedCost)) { Refresh(); return; }
 

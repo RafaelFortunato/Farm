@@ -4,30 +4,23 @@ using UnityEngine;
 /// <summary>
 /// One dish the stove can make: what it eats, what it gives back, and how long it takes.
 ///
-/// Inputs are pairs rather than two parallel arrays, so an item can never end up holding
-/// someone else's count when the list is edited in the inspector.
+/// Inputs are ItemStacks - the same pair a farmhouse upgrade is priced in - so both systems
+/// describe "some number of this item" the same way.
 /// </summary>
 [CreateAssetMenu(fileName = "Recipe_", menuName = "Farm/Recipe")]
 public class RecipeDef : ScriptableObject
 {
-    [System.Serializable]
-    public struct Ingredient
-    {
-        public ItemDef item;
-        public int count;
-    }
-
     [Header("Recipe")]
     [Tooltip("What one batch costs out of the produce crate.")]
-    public Ingredient[] inputs;
+    public ItemStack[] inputs;
     public ItemDef output;
     public int outputCount = 1;
 
     [Header("Timing")]
     public float cookSeconds = 25f;
 
-    [Tooltip("Stove tier this needs. The stove's tier rises with the farmhouse.")]
-    public int requiredLevel = 1;
+    [Tooltip("Farmhouse level this recipe needs. The stove itself arrives at level 3.")]
+    public int requiredLevel = 3;
 
     public string DisplayName => output != null ? output.displayName : name;
 
@@ -45,7 +38,7 @@ public class RecipeDef : ScriptableObject
         {
             if (inputs == null || inputs.Length == 0) return false;
             foreach (var i in inputs)
-                if (i.item == null || Inventory.ProduceCount(i.item) < i.count) return false;
+                if (!i.InStock) return false;
             return true;
         }
     }

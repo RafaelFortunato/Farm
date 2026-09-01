@@ -24,6 +24,7 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] SeedMenu seedMenu;
     [SerializeField] StoreMenu storeMenu;
     [SerializeField] RecipeMenu recipeMenu;
+    [SerializeField] WinPanel winPanel;
 
     /// <summary>The floating "E - Plant" badge over whatever the player is standing at.</summary>
     public static InteractPrompt Prompt => Instance.interactPrompt;
@@ -32,6 +33,9 @@ public class UIManager : Singleton<UIManager>
     public static StoreMenu Shop => Instance.storeMenu;
     public static RecipeMenu Kitchen => Instance.recipeMenu;
 
+    /// <summary>The end screen. Raised by the farmhouse when it reaches its top level.</summary>
+    public static WinPanel Win => Instance.winPanel;
+
     void OnValidate()
     {
         var missing = string.Empty;
@@ -39,6 +43,7 @@ public class UIManager : Singleton<UIManager>
         if (seedMenu == null) missing += " seedMenu";
         if (storeMenu == null) missing += " storeMenu";
         if (recipeMenu == null) missing += " recipeMenu";
+        if (winPanel == null) missing += " winPanel";
 
         if (missing.Length > 0) Debug.LogWarning("UIManager is missing references:" + missing, this);
     }

@@ -167,16 +167,32 @@ public class SoilPlot : Interactable, ITimedProgress
     {
         if (_state != PlotState.Ready || _crop == null) return;
 
+        // DisplayPrefab is the single item, not the ripe stage - the ripe stage is a cluster of
+        // however many this crop yields, and a pickup showing four carrots flying to the player
+        // four times over would multiply the harvest on screen.
         var prefab = _crop.DisplayPrefab;
+        int yield = Mathf.Max(_crop.yieldPerHarvest, 1);
 
         if (prefab != null)
         {
-            var spawnAt = cropAnchor.position + Vector3.up * 0.3f;
-            var go = Instantiate(prefab, spawnAt, Quaternion.identity);
-            var col = go.GetComponent<Collectable>();
-            if (col == null) col = go.AddComponent<Collectable>();
-            col.item = _crop;
-            col.amount = 1;
+            // One flier per item, spread around the plot rather than stacked, so the count the
+            // plant was showing is visibly the count that arrives.
+            for (int i = 0; i < yield; i++)
+            {
+                var offset = Vector3.zero;
+                if (yield > 1)
+                {
+                    float angle = i / (float)yield * Mathf.PI * 2f;
+                    offset = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 0.22f;
+                }
+
+                var go = Instantiate(prefab, cropAnchor.position + Vector3.up * 0.3f + offset,
+                                     Quaternion.identity);
+                var col = go.GetComponent<Collectable>();
+                if (col == null) col = go.AddComponent<Collectable>();
+                col.item = _crop;
+                col.amount = 1;
+            }
         }
 
         ClearStageInstance();

@@ -22,4 +22,4 @@ MonoBehaviour:
   output: {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
   outputCount: 1
   cookSeconds: 45
-  requiredLevel: 2
+  requiredLevel: 4

@@ -16,13 +16,15 @@ MonoBehaviour:
   tintColor: {r: 1, g: 0.85882354, b: 0.34901962, a: 1}
   icon: {fileID: 21300000, guid: 7057024effb7884468109dd2401ddab5, type: 3}
   sellValue: 28
-  worldPrefab: {fileID: 0}
+  worldPrefab: {fileID: 3592292179363212890, guid: 179272029244a8742b63543f435a1375, type: 3}
   iconScale: 1
   stagePrefabs:
-  - {fileID: 5497211735150880983, guid: e4d6cf5dfac217e4aa57b954b8cc1105, type: 3}
-  - {fileID: 5962430241588196273, guid: ff4ed0f60d4a5a54b9b1a0b2fad77c78, type: 3}
+  - {fileID: 2638229096303324928, guid: 0cad811b3d374034ea230617d1fc9ce6, type: 3}
   - {fileID: 2658104347403863969, guid: 530671a6dcce5b84992a7417b0d91c86, type: 3}
-  - {fileID: 3592292179363212890, guid: 179272029244a8742b63543f435a1375, type: 3}
-  stageScales: []
+  stageScales:
+  - 1
+  - 0.54420036
   growSeconds: 30
+  yieldPerHarvest: 3
   seedCost: 12
+  requiredLevel: 2

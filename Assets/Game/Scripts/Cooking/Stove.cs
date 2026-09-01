@@ -16,10 +16,10 @@ public class Stove : Interactable, ITimedProgress
     public enum StoveState { Idle, Cooking, Ready }
 
     [Header("Recipes")]
-    [Tooltip("Everything this stove could ever make. Entries above the current tier show as locked.")]
+    [Tooltip("Everything this stove could ever make. Entries above the current level show as locked.")]
     public RecipeDef[] recipes;
 
-    [Tooltip("Which tier of recipes is unlocked. Rises with the farmhouse.")]
+    [Tooltip("Which recipes are unlocked. Mirrors the farmhouse level.")]
     public int level = 1;
 
     [Header("Player action")]
