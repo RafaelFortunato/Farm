@@ -2,25 +2,26 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// A farm animal that fills up with produce on a timer and hands over the whole store when
-/// the player walks up.
+/// Anything that fills up with produce on a timer and hands over the whole store when the
+/// player walks up - a hen laying eggs, a cow, an apple tree.
 ///
-/// Unlike a plot, an animal banks what it makes: it lays one every regrowSeconds up to its
-/// capacity and then waits, so the player is free to be somewhere else instead of standing
+/// Unlike a plot, a producer banks what it makes: one every regrowSeconds up to its capacity,
+/// and then it waits, so the player is free to be somewhere else instead of standing
 /// over it. The clock runs on elapsed real time and catches up in one go, so a throttled
 /// browser tab loses nothing.
 ///
-/// The badge is authored into the prefab - an animal always makes the same thing, so there is
+/// The badge is authored into the prefab - a producer always makes the same thing, so there is
 /// nothing to swap at runtime, only a count to write and a visibility to toggle. The idle sway
 /// lives here rather than in an Animator because these are primitive kitbashes with no rig,
-/// and a little motion is what makes them read as animals instead of as furniture.
+/// and a little motion is what makes a hen read as a hen instead of as furniture. A
+/// tree wants only the faintest sway, or none.
 /// </summary>
-public class Animal : Interactable
+public class Producer : Interactable
 {
     [Header("Produce")]
     [Tooltip("Species data: what it makes, how fast, and how much it banks. Both chickens share " +
              "one asset, so retuning egg timing is a single edit.")]
-    public AnimalDef definition;
+    public ProducerDef definition;
 
     public ItemDef Produces => definition.produces;
     public float RegrowSeconds => definition.regrowSeconds;
@@ -57,7 +58,7 @@ public class Animal : Interactable
     /// <summary>How many are waiting to be collected.</summary>
     public int Stored => _stored;
 
-    /// <summary>0..1 towards the next one. Sits at 1 once the animal is full.</summary>
+    /// <summary>0..1 towards the next one. Sits at 1 once it is full.</summary>
     public float Progress =>
         _stored >= Capacity ? 1f
         : Mathf.Clamp01(1f - (_nextAt - Time.time) / Mathf.Max(RegrowSeconds, 0.01f));

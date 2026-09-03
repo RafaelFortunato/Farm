@@ -1,17 +1,18 @@
 using UnityEngine;
 
 /// <summary>
-/// What a kind of farm animal makes, how fast, and how much it banks.
+/// What a kind of producer makes, how fast, and how much it banks.
 ///
-/// Species data rather than per-animal data: both chickens read the same asset, so retuning egg
-/// timing is one edit instead of hunting down every bird in the scene. The Animal component
-/// keeps only what is genuinely per-instance - its badge, its body, its current store.
+/// Shared data rather than per-instance data: both chickens read one asset and every apple tree
+/// reads another, so retuning egg or apple timing is a single edit instead of hunting down each
+/// bird and trunk in the scene. The Producer component keeps only what is genuinely
+/// per-instance - its badge, its body, its current store.
 /// </summary>
-[CreateAssetMenu(fileName = "Animal_", menuName = "Farm/Animal Definition")]
-public class AnimalDef : ScriptableObject
+[CreateAssetMenu(fileName = "Producer_", menuName = "Farm/Producer Definition")]
+public class ProducerDef : ScriptableObject
 {
     [Header("Identity")]
-    public string displayName = "Animal";
+    public string displayName = "Producer";
 
     [Header("Produce")]
     public ItemDef produces;
