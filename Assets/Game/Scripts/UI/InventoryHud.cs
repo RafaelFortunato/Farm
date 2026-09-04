@@ -14,6 +14,7 @@ public class InventoryHud : MonoBehaviour
 {
     [Header("Prefab wiring")]
     [SerializeField] InventoryChip chipPrefab;
+    [SerializeField] CanvasGroup canvasGroup;
 
     [Tooltip("Layout group the chips are parented to.")]
     [SerializeField] RectTransform chipRow;
@@ -48,7 +49,11 @@ public class InventoryHud : MonoBehaviour
         if (aside == _stoodAside) return;
 
         _stoodAside = aside;
-        if (chipRow != null) chipRow.gameObject.SetActive(!aside);
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = aside ? 0f : 1f;
+            canvasGroup.blocksRaycasts = !aside;
+        }
     }
 
     /// <summary>
