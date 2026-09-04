@@ -16,4 +16,4 @@ MonoBehaviour:
   produces: {fileID: 11400000, guid: caaedc45fd842b748afb7432e1d2831e, type: 2}
   regrowSeconds: 10
   capacity: 3
-  collectAction: {fileID: 11400000, guid: 5e85e5c1eae329745b9cd7e035ebf0c2, type: 2}
+  collectAction: {fileID: 11400000, guid: fd3e4c85d9c1f354280f79c0107e44bb, type: 2}
