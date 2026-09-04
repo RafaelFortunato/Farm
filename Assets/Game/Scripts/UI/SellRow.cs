@@ -19,10 +19,7 @@ public class SellRow : MonoBehaviour
     [SerializeField] TextMeshProUGUI priceLabel;
     [SerializeField] TextMeshProUGUI heldLabel;
     [SerializeField] GameObject coinIcon;
-
-    [Tooltip("How strongly the row picks up the item's own colour.")]
-    [Range(0f, 1f)] public float tintStrength = 0.35f;
-
+    
     [SerializeField] Image background;
 
     ItemDef _item;
@@ -43,13 +40,7 @@ public class SellRow : MonoBehaviour
             // A missing icon would otherwise draw as a white box - apples have none yet.
             iconImage.enabled = item.icon != null;
         }
-
-        if (background != null)
-        {
-            if (!_captured) { _baseColor = background.color; _captured = true; }
-            background.color = Color.Lerp(_baseColor, item.tintColor, tintStrength);
-        }
-
+        
         if (button == null) return;
         button.onClick.RemoveAllListeners();
         button.onClick.AddListener(() => onSell?.Invoke(item));
