@@ -2,7 +2,11 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Seed picker shown when the player uses an empty plot.
+/// Crop picker shown when the player uses an empty plot.
+///
+/// Planting costs nothing and never runs out, so the only question this asks is which crop -
+/// and the only thing that can say no is the farmhouse level. Crops above it are shown locked
+/// rather than hidden: a crop you cannot plant yet is a reason to go and upgrade.
 ///
 /// The panel is authored as a prefab under Prefabs/UI and lives beneath MainCanvas.
 /// This script only shows/hides it and fills in data - all styling is in the prefab.
@@ -14,6 +18,10 @@ public class SeedMenu : MonoBehaviour
 
     [Header("Content")]
     public CropDef[] crops;
+
+    [Tooltip("Which crops are unlocked. Pushed in by the farmhouse, the same way the stove's " +
+             "recipe tier and the trucks' demand table are.")]
+    public int level = 1;
 
     [Header("Prefab wiring")]
     [SerializeField] GameObject panelRoot;
@@ -87,10 +95,9 @@ public class SeedMenu : MonoBehaviour
 
     void Refresh()
     {
-        // a crop is plantable only while there is a seed for it in the bag
         for (int i = 0; i < _buttons.Count && i < crops.Length; i++)
             if (_buttons[i] != null && crops[i] != null)
-                _buttons[i].SetStock(Inventory.SeedCount(crops[i]));
+                _buttons[i].SetAvailable(crops[i].requiredLevel <= level);
     }
 
     void Choose(CropDef crop)

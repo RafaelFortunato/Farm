@@ -23,6 +23,7 @@ public class InventoryHud : MonoBehaviour
     [SerializeField] ItemDef[] tracked;
 
     InventoryChip[] _chips;
+    bool _stoodAside;
 
     // Subscribed in OnEnable rather than Awake: a domain reload during play re-runs OnEnable
     // but NOT Awake, and it wipes the static event we are listening to.
@@ -35,6 +36,20 @@ public class InventoryHud : MonoBehaviour
     }
 
     void OnDisable() => Inventory.Changed -= Refresh;
+
+    /// <summary>
+    /// Step aside while a menu is up. The panels open over this corner of the screen and the
+    /// strip is drawn after them, so without this it shows through the shop rather than behind
+    /// them. Nothing is lost by going: the shop's sell tab lists the same counts, item for item.
+    /// </summary>
+    void LateUpdate()
+    {
+        bool aside = Menus.AnyOpen;
+        if (aside == _stoodAside) return;
+
+        _stoodAside = aside;
+        if (chipRow != null) chipRow.gameObject.SetActive(!aside);
+    }
 
     /// <summary>
     /// Clones one chip per tracked item. Re-enabling reuses what is already there, and the two

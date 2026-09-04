@@ -33,8 +33,8 @@ public class MainBuilding : Interactable
     [Tooltip("What the trucks ask for follows the farmhouse.")]
     public TruckQueue truckQueue;
 
-    [Tooltip("Which seeds the shop stocks follows the farmhouse.")]
-    public Store store;
+    [Tooltip("Which crops can be planted follows the farmhouse.")]
+    public SeedMenu cropMenu;
 
     [Header("Player action")]
     [Tooltip("Beat the player performs when upgrading. Leave empty to upgrade instantly.")]
@@ -169,7 +169,7 @@ public class MainBuilding : Interactable
         if (expansion != null) expansion.ApplyUpTo(_level);
         if (stove != null) stove.level = _level;
         if (truckQueue != null) truckQueue.level = _level;
-        if (store != null) store.level = _level;
+        if (cropMenu != null) cropMenu.level = _level;
     }
 
     void Win()

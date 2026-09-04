@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// One row in the seed menu. Authored as a prefab (Prefabs/UI/CropButton) with its
+/// One row in the crop picker. Authored as a prefab (Prefabs/UI/CropButton) with its
 /// sprites, font and layout already set - this script only fills in the data.
 /// </summary>
 public class CropButton : MonoBehaviour
@@ -12,7 +12,13 @@ public class CropButton : MonoBehaviour
     [SerializeField] Button button;
     [SerializeField] TextMeshProUGUI label;
 
+    [Tooltip("Label colour for a crop the farm has not reached yet. A greyed button alone is " +
+             "too quiet against this art - the row needs to read as locked, not as boring.")]
+    public Color lockedColor = new Color(0.69f, 0.23f, 0.18f);
+
     CropDef _crop;
+    Color _labelColor;
+    bool _labelColorCached;
 
     void Reset()
     {
@@ -31,15 +37,22 @@ public class CropButton : MonoBehaviour
     }
 
     /// <summary>
-    /// Shows how many seeds are left and disables the row at zero. The count is part of
-    /// the label, so it is rebuilt here rather than in Bind - it changes as you plant.
+    /// Shows what the crop is and how long it takes, or the level it is waiting on. Rebuilt
+    /// here rather than in Bind because the farm can grow between two visits to the same plot.
     /// </summary>
-    public void SetStock(int seeds)
+    public void SetAvailable(bool unlocked)
     {
         if (label != null && _crop != null)
-            label.text = string.Format("{0} / x{1} / {2}s",
-                _crop.displayName, seeds, Mathf.RoundToInt(_crop.growSeconds));
+        {
+            // remember the authored colour once, so unlocking can put it back
+            if (!_labelColorCached) { _labelColor = label.color; _labelColorCached = true; }
 
-        if (button != null) button.interactable = seeds > 0;
+            label.text = unlocked
+                ? string.Format("{0} / {1}s", _crop.displayName, Mathf.RoundToInt(_crop.growSeconds))
+                : string.Format("{0} / Lv {1}", _crop.displayName, _crop.requiredLevel);
+            label.color = unlocked ? _labelColor : lockedColor;
+        }
+
+        if (button != null) button.interactable = unlocked;
     }
 }

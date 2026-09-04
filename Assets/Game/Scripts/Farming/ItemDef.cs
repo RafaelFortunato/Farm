@@ -20,7 +20,10 @@ public class ItemDef : ScriptableObject
     public Sprite icon;
 
     [Header("Economy")]
-    [Tooltip("Coins one of these fetches from a truck.")]
+    [Tooltip("Coins one of these fetches at the shop counter, which is always open and takes any " +
+             "quantity. A truck pays a multiple of it, so this is the floor rather than the prize. " +
+             "Set so that later, slower goods earn more per minute than early ones - see " +
+             "GAME_CONCEPT.md section 5.")]
     public int sellValue = 10;
 
     [Header("World")]

@@ -32056,11 +32056,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Store
   focusAnchor: {fileID: 688190396}
-  stock:
+  sellable:
+  - {fileID: 11400000, guid: caaedc45fd842b748afb7432e1d2831e, type: 2}
   - {fileID: 11400000, guid: 9c1a7beb05a95c84da19a60ab8bc3880, type: 2}
   - {fileID: 11400000, guid: 72b965e1b93775e4d88f602590e79825, type: 2}
   - {fileID: 11400000, guid: a45b72a9679d24d46bd6e32f7634903c, type: 2}
-  level: 1
+  - {fileID: 11400000, guid: 160ee6bc915f7f54b88d9071ec3b2b38, type: 2}
+  - {fileID: 11400000, guid: 6f84a7ab5794b8643bdadac7d1706bb3, type: 2}
+  - {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
+  - {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
 --- !u!4 &1075994200 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7890376443428429451, guid: 09fcd8699d3665941a8ef6696320e444, type: 3}
@@ -41510,7 +41514,7 @@ MonoBehaviour:
   expansion: {fileID: 1175241798}
   stove: {fileID: 1727427879}
   truckQueue: {fileID: 1582858176}
-  store: {fileID: 1072060976}
+  cropMenu: {fileID: 2029600219}
   upgradeAction: {fileID: 11400000, guid: 1955b7d0e1f6ce94f90c45fe813963b9, type: 2}
   _level: 1
 --- !u!1001 &1410903797
@@ -45398,6 +45402,11 @@ MonoBehaviour:
     maxAmount: 1
   level: 1
   topLevel: 5
+  truckPayoff: {x: 3, y: 5}
+  startingTrucks: 1
+  maxParked: 1
+  arriveAfter: {x: 45, y: 90}
+  patience: 30
   driveSpeed: 6
 --- !u!1001 &1584471125
 PrefabInstance:

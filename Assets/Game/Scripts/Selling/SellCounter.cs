@@ -39,9 +39,11 @@ public class SellCounter : Interactable
 
         if (front == null || front.Wanted == null) { _prompt = ""; return; }
 
-        _prompt = affordable
-            ? "Sell " + front.Amount + " " + front.Wanted.displayName
-            : "Need " + front.Amount + " " + front.Wanted.displayName;
+        // The coins are on both branches on purpose. A truck pays several times the shop price
+        // and is only here for a moment, so "Need 3 Corn" is half the question - what the player
+        // is deciding is whether it is worth running to grow them, and that needs the number.
+        _prompt = (affordable ? "Sell " : "Need ") + front.Amount + " " +
+                  front.Wanted.displayName + "  " + front.Reward + "c";
     }
 
     // Always focusable so the player can read what the truck wants; the sale itself is what

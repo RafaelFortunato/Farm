@@ -23,8 +23,6 @@ public class CropDef : ItemDef
     [Min(1)] public int yieldPerHarvest = 1;
 
     [Header("Economy")]
-    public int seedCost = 4;
-
     [Tooltip("Farmhouse level the shop starts stocking this. 1 means available from the start.")]
     public int requiredLevel = 1;
 

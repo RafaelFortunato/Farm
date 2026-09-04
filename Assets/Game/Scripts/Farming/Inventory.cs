@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// The player's money, seed bag and produce crate.
+/// The player's money and produce crate.
 ///
-/// Seeds and produce are tracked in separate bags because one CropDef names both ends of
-/// the loop: a corn seed is what you plant, a corn is what you harvest. Keeping them apart
-/// means buying seeds can never be confused with having grown something.
+/// There is no seed bag: planting is free and unlimited, and which crops are available is a
+/// question for the farmhouse level rather than for anything the player has to carry. What is
+/// held here is only what the farm has made and not yet sold.
 ///
 /// Static because there is exactly one player and a 20-minute session; it will grow into
 /// the GameState described in the concept doc.
@@ -16,40 +16,15 @@ public static class Inventory
 {
     public const int StartingCoins = 30;
 
-    static readonly Dictionary<CropDef, int> SeedBag = new Dictionary<CropDef, int>();
-    // Produce is keyed by ItemDef, not CropDef: eggs, milk and cake are held the same way a
-    // harvested carrot is. Seeds stay CropDef - only something you plant can have a seed.
+    // Keyed by ItemDef rather than CropDef: an egg, a bottle of milk and a cake are held the
+    // same way a harvested carrot is, and nothing here cares whether it was grown.
     static readonly Dictionary<ItemDef, int> ProduceCrate = new Dictionary<ItemDef, int>();
     static readonly Dictionary<ItemDef, int> LifetimeCrate = new Dictionary<ItemDef, int>();
 
     public static int Coins { get; private set; } = StartingCoins;
 
-    /// <summary>Raised whenever coins, seeds or produce change, so UI can refresh.</summary>
+    /// <summary>Raised whenever coins or produce change, so UI can refresh.</summary>
     public static event Action Changed;
-
-    // --- seeds: bought at the store, spent by planting ---
-
-    public static int SeedCount(CropDef crop) => Count(SeedBag, crop);
-
-    public static void AddSeeds(CropDef crop, int amount)
-    {
-        if (crop == null || amount <= 0) return;
-        SeedBag.TryGetValue(crop, out int n);
-        SeedBag[crop] = n + amount;
-        Changed?.Invoke();
-    }
-
-    /// <summary>Spends one seed to plant it. False when the bag is empty.</summary>
-    public static bool TryUseSeed(CropDef crop)
-    {
-        if (crop == null) return false;
-        SeedBag.TryGetValue(crop, out int n);
-        if (n <= 0) return false;
-
-        SeedBag[crop] = n - 1;
-        Changed?.Invoke();
-        return true;
-    }
 
     // --- produce: what a finished plot yields ---
 
@@ -113,7 +88,6 @@ public static class Inventory
     /// <summary>Clears everything. Called on a fresh run so play-mode state never leaks.</summary>
     public static void Reset(int startingCoins = StartingCoins)
     {
-        SeedBag.Clear();
         ProduceCrate.Clear();
         LifetimeCrate.Clear();
         Coins = startingCoins;
@@ -124,7 +98,6 @@ public static class Inventory
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetOnPlay()
     {
-        SeedBag.Clear();
         ProduceCrate.Clear();
         LifetimeCrate.Clear();
         Coins = StartingCoins;

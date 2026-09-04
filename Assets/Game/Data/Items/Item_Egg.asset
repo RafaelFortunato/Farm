@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Egg
   tintColor: {r: 0.9607843, g: 0.89411765, b: 0.6901961, a: 1}
   icon: {fileID: 21300000, guid: f2ccf3c2ebca3f5429912b388d780b5b, type: 3}
-  sellValue: 15
+  sellValue: 85
   worldPrefab: {fileID: 4077141521328887635, guid: 26dd2342357dc454bb29148a4339dd1d, type: 3}
   iconScale: 1

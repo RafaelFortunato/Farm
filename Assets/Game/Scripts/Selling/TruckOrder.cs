@@ -9,8 +9,12 @@ using UnityEngine;
 /// for the crops do not exist, and the models read instantly at this camera distance.
 /// Every crop's model is instantiated once and then just toggled, so a truck coming back
 /// out of the pool with a different order allocates nothing.
+///
+/// A truck pays several times what the shop does, and it will not wait forever. The clock it
+/// runs while parked is exposed as ITimedProgress, so the same ring that counts a growing crop
+/// and a cooking stove counts this too - see PlotTimer.
 /// </summary>
-public class TruckOrder : MonoBehaviour
+public class TruckOrder : MonoBehaviour, ITimedProgress
 {
     [Header("Badge")]
     [Tooltip("Root of the floating order badge, billboarded to the camera.")]
@@ -27,11 +31,25 @@ public class TruckOrder : MonoBehaviour
     public ItemDef Wanted { get; private set; }
     public int Amount { get; private set; }
 
-    /// <summary>Coins paid when this order is filled.</summary>
-    public int Reward => Wanted != null ? Wanted.sellValue * Amount : 0;
+    /// <summary>
+    /// Coins paid when this order is filled: the shop price marked up by what this driver is
+    /// willing to pay. Kept a pure function of the order so a truck coming back out of the pool
+    /// cannot carry the last one's price - Configure is the only thing that sets any of it.
+    /// </summary>
+    public int Reward => Wanted != null ? Mathf.RoundToInt(Wanted.sellValue * _payoff) * Amount : 0;
 
     /// <summary>True once the truck has finished rolling to its slot.</summary>
     public bool Arrived => !_moving;
+
+    /// <summary>True while this truck is counting down its patience at the counter.</summary>
+    public bool Waiting => _waiting;
+
+    /// <summary>True once it has waited long enough and should pull away unserved.</summary>
+    public bool OutOfPatience => _waiting && Time.time >= _waitUntil;
+
+    // ITimedProgress - what PlotTimer reads to draw the ring over the cab
+    public bool InProgress => _waiting;
+    public float Progress => _waiting ? Mathf.InverseLerp(_waitFrom, _waitUntil, Time.time) : 0f;
 
     readonly Dictionary<ItemDef, GameObject> _models = new Dictionary<ItemDef, GameObject>();
     Transform _tf;
@@ -39,6 +57,10 @@ public class TruckOrder : MonoBehaviour
     Vector3 _target;
     float _speed;
     bool _moving;
+    float _payoff = 1f;
+    float _waitFrom;
+    float _waitUntil;
+    bool _waiting;
 
     // OnEnable, not Awake: GameManager only guarantees its references from OnEnable onward,
     // and a pooled truck re-enables on every rent, so this is the natural home for it too.
@@ -48,11 +70,16 @@ public class TruckOrder : MonoBehaviour
         _cam = GameManager.CameraTransform;
     }
 
-    /// <summary>Give this truck an order. Safe to call repeatedly as it is recycled.</summary>
-    public void Configure(ItemDef crop, int amount)
+    /// <summary>
+    /// Give this truck an order. Safe to call repeatedly as it is recycled - and the one place
+    /// every piece of per-order state is set, so nothing can leak between rents.
+    /// </summary>
+    public void Configure(ItemDef crop, int amount, float payoff)
     {
         Wanted = crop;
         Amount = amount;
+        _payoff = payoff;
+        _waiting = false;
 
         if (countLabel != null) countLabel.text = "x" + amount;
 
@@ -114,6 +141,20 @@ public class TruckOrder : MonoBehaviour
     {
         if (badge != null && badge.gameObject.activeSelf != visible) badge.gameObject.SetActive(visible);
     }
+
+    /// <summary>
+    /// Start the patience clock. Called when the truck reaches the counter rather than when it
+    /// spawns, so the drive in does not eat into the window the player actually gets.
+    /// </summary>
+    public void BeginWait(float seconds)
+    {
+        _waitFrom = Time.time;
+        _waitUntil = Time.time + Mathf.Max(seconds, 0.1f);
+        _waiting = true;
+    }
+
+    /// <summary>Stop the clock, whether the order was filled or the driver gave up.</summary>
+    public void EndWait() => _waiting = false;
 
     void Update()
     {

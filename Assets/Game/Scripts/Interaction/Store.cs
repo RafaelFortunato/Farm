@@ -1,26 +1,24 @@
 using UnityEngine;
 
 /// <summary>
-/// The seed shop. The player walks up to the storefront and opens the buy menu.
+/// The shop counter. The player walks up and sells what the farm has made.
+///
+/// It sells nothing back: seed is free and unlimited, so the only thing crossing this counter
+/// is produce going out. It is the dependable half of the economy - always open, no queue, and
+/// it will take any quantity of anything. The trucks pay several times better but only turn up
+/// now and then, so the choice on every harvest is whether to bank it here or hold it for one
+/// that might come.
 ///
 /// Put the focusAnchor at the counter rather than the building's pivot, so approaching
 /// from behind does not count as being at the shop.
 /// </summary>
 public class Store : Interactable
 {
-    [Tooltip("Everything the store will ever stock, cheapest first. The first entry should be " +
-             "free so the player can never be stranded with no seeds and no coins. Entries above " +
-             "the current farm level are shown locked rather than hidden - a seed you cannot buy " +
-             "yet is a reason to upgrade.")]
-    public CropDef[] stock;
+    [Tooltip("Everything the counter will buy, in the order it should be listed. Worth keeping " +
+             "in the same order the economy is tuned to - cheapest per minute first.")]
+    public ItemDef[] sellable;
 
-    [Tooltip("Which crops are unlocked. Rises with the farmhouse.")]
-    public int level = 1;
-
-    public override string Prompt => "Shop";
-
-    /// <summary>True when the farm has come far enough for this crop to be on sale.</summary>
-    public bool IsUnlocked(CropDef crop) => crop != null && crop.requiredLevel <= level;
+    public override string Prompt => "Sell";
 
     public override void Interact(PlayerInteractor interactor)
     {

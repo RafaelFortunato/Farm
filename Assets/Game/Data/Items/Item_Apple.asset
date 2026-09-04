@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef
   displayName: Apple
   tintColor: {r: 0.84705883, g: 0.23137255, b: 0.23137255, a: 1}
-  icon: {fileID: 0}
-  sellValue: 10
+  icon: {fileID: 21300000, guid: 1e490cfb37db8834c8d50b7e9c583377, type: 3}
+  sellValue: 16
   worldPrefab: {fileID: 7220678190614878043, guid: e6a6c8ef3139ebb4998e4b19d2e8c8a7, type: 3}
   iconScale: 1

@@ -122,7 +122,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: SEED SHOP
+  m_text: SELL
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3015d2c5ebbad4fbc944c8238764609f, type: 2}
   m_sharedMaterial: {fileID: -6245147879248726382, guid: 3015d2c5ebbad4fbc944c8238764609f, type: 2}
@@ -245,7 +245,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StoreMenu
   panelRoot: {fileID: 7244266697899766019}
   rowContainer: {fileID: 5585262154645378118}
-  rowPrefab: {fileID: 1420361452204419419, guid: 7b74e9cc1c14d014da8772b9053c2afa, type: 3}
+  sellRowPrefab: {fileID: 8154915012192577530, guid: 0748d8681f7a7dd438e1b8031f197369, type: 3}
   closeButton: {fileID: 7086989575105245149}
   cameraZoom: 5
   cameraPitch: -8

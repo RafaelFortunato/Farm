@@ -2,12 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// The line of trucks waiting to buy produce.
+/// The trucks that call at the farm gate.
 ///
-/// The queue is endless in time but bounded in instances: only as many trucks as there are
-/// visible slots (plus the one currently driving off) can ever exist at once, so they are
-/// pooled and recycled rather than spawned and destroyed. After the first lap the pool
-/// stops growing and the feature allocates nothing per sale.
+/// A truck is an event, not a fixture. One rolls up, waits a short while for its order to be
+/// filled, and pulls away again whether it was served or not - and then the road is empty for
+/// most of a minute before the next. That gap is the point: a truck pays several times what the
+/// shop does, so it has to be something the player looks up for rather than a counter that is
+/// always sitting there.
+///
+/// Bounded in instances as well as in time: only as many trucks as there are visible slots
+/// (plus the ones currently driving off) can ever exist, so they are pooled and recycled rather
+/// than spawned and destroyed. After the first lap the pool stops growing and the feature
+/// allocates nothing per sale.
 /// </summary>
 public class TruckQueue : MonoBehaviour
 {
@@ -58,18 +64,45 @@ public class TruckQueue : MonoBehaviour
     [Tooltip("The level at which the end-of-table weights apply. Weights interpolate up to it.")]
     [SerializeField] int topLevel = 5;
 
+    [Tooltip("What a truck pays, as a multiple of the shop price, rolled fresh for each order. " +
+             "The shop is the floor and this is the payday. The figure lands in the sell " +
+             "counter's prompt before the player commits, so it is a decision and not a bet.")]
+    [SerializeField] Vector2 truckPayoff = new Vector2(3f, 5f);
+
+    [Header("Arrivals")]
+    [Tooltip("How many trucks are already parked when the game starts. One, so the player meets " +
+             "the mechanic straight away without the road looking permanently busy.")]
+    [SerializeField] int startingTrucks = 1;
+
+    [Tooltip("How many trucks may be at the gate at once.")]
+    [SerializeField] int maxParked = 1;
+
+    [Tooltip("The quiet stretch before the next truck rolls in, rolled fresh each time. Counted " +
+             "from the moment the last one pulled away rather than off a free-running clock, so " +
+             "serving an order quickly is never punished with a shorter wait for the next.")]
+    [SerializeField] Vector2 arriveAfter = new Vector2(45f, 90f);
+
+    [Tooltip("How long a truck waits at the counter before giving up and driving off. The clock " +
+             "starts when it parks, not when it spawns, so the drive in does not eat the window.")]
+    [SerializeField] float patience = 30f;
+
     [Header("Movement")]
     [SerializeField] float driveSpeed = 6f;
 
-    /// <summary>The truck at the counter, or null while the line is shuffling up.</summary>
+    /// <summary>The truck at the counter, or null while the road is empty.</summary>
     public TruckOrder Front => _queue.Count > 0 ? _queue[0] : null;
 
     /// <summary>Bumped every time the front order changes, so UI can tell it went stale.</summary>
     public int OrderVersion { get; private set; }
 
+    /// <summary>Seconds until the next truck is due, for anything that wants to say so.</summary>
+    public float NextArrivalIn => Mathf.Max(0f, _nextArrival - Time.time);
+
     readonly List<TruckOrder> _pool = new List<TruckOrder>();
     readonly List<TruckOrder> _queue = new List<TruckOrder>();
     readonly List<TruckOrder> _leaving = new List<TruckOrder>();
+
+    float _nextArrival;
 
     // Hard ceiling on trucks mid-departure. Without it a player selling faster than a truck
     // can drive off would keep renting new bodies and the pool would grow without limit,
@@ -80,54 +113,109 @@ public class TruckQueue : MonoBehaviour
     void OnEnable()
     {
         // rebuilt here rather than Awake so a domain reload during play restores the line
-        if (_queue.Count == 0) Fill();
-
-        Inventory.Changed -= EnsureFrontReachable;   // never double-subscribe
-        Inventory.Changed += EnsureFrontReachable;
+        if (_queue.Count == 0) Fill(startingTrucks);
+        _nextArrival = Time.time + RollGap();
     }
 
-    void OnDisable() => Inventory.Changed -= EnsureFrontReachable;
-
-    void Fill()
+    void Update()
     {
-        for (int i = 0; i < slots.Length; i++)
+        RecycleArrived();
+        TickPatience();
+        TickArrivals();
+    }
+
+    // ---- the clock ----
+
+    /// <summary>
+    /// Start the front truck's clock once it has actually parked, and send it on its way when it
+    /// runs out. Only the front runs a clock: anything behind it is queueing, not being ignored.
+    /// </summary>
+    void TickPatience()
+    {
+        var front = Front;
+        if (front == null) return;
+
+        if (!front.Waiting)
+        {
+            if (front.Arrived) front.BeginWait(patience);
+            return;
+        }
+
+        if (front.OutOfPatience) Depart();
+    }
+
+    /// <summary>Roll a truck in when one is due and there is room at the gate.</summary>
+    void TickArrivals()
+    {
+        if (Time.time < _nextArrival) return;
+        if (_queue.Count >= Mathf.Min(maxParked, slots.Length)) return;
+
+        SpawnAtBack();
+        _nextArrival = Time.time + RollGap();
+    }
+
+    float RollGap() => Random.Range(arriveAfter.x, arriveAfter.y);
+
+    float RollPayoff() => Random.Range(truckPayoff.x, truckPayoff.y);
+
+    // ---- the line ----
+
+    /// <summary>The trucks already parked at the start of the game. These snap in, no convoy.</summary>
+    void Fill(int count)
+    {
+        count = Mathf.Clamp(count, 0, Mathf.Min(maxParked, slots.Length));
+
+        for (int i = 0; i < count; i++)
         {
             var t = Rent();
             var d = PickDemand();
-            t.Configure(d.item, ReachableAmount(d));
-            t.MoveTo(slots[i].position, driveSpeed, true);   // first fill snaps, no convoy sliding in
+            t.Configure(d.item, AmountFor(d), RollPayoff());
+            t.MoveTo(slots[i].position, driveSpeed, true);
             t.ShowBadge(true);
             _queue.Add(t);
         }
         OrderVersion++;
     }
 
+    /// <summary>A fresh order rolling in from off-screen to the back of the line.</summary>
+    void SpawnAtBack()
+    {
+        if (_queue.Count >= slots.Length) return;
+
+        var t = Rent();
+        var d = PickDemand();
+        t.Configure(d.item, AmountFor(d), RollPayoff());
+        t.transform.position = spawnPoint.position;
+        t.MoveTo(slots[_queue.Count].position, driveSpeed);
+        t.ShowBadge(true);
+        _queue.Add(t);
+        OrderVersion++;
+    }
+
     /// <summary>
-    /// The front truck has been paid: it pulls away, everyone shuffles up one, and a fresh
-    /// order rolls in at the back.
+    /// The front truck has been paid: it pulls away and the next quiet stretch begins.
     /// </summary>
-    public void Advance()
+    public void Advance() => Depart();
+
+    /// <summary>
+    /// The front truck leaves, served or not. Both endings run through here so the pool trim
+    /// and the arrival clock cannot be remembered in one path and forgotten in the other.
+    /// </summary>
+    void Depart()
     {
         if (_queue.Count == 0) return;
 
         RecycleArrived();
 
-        var served = _queue[0];
+        var going = _queue[0];
         _queue.RemoveAt(0);
-        served.ShowBadge(false);
-        served.MoveTo(exitPoint.position, driveSpeed);
-        _leaving.Add(served);
+        going.EndWait();
+        going.ShowBadge(false);
+        going.MoveTo(exitPoint.position, driveSpeed);
+        _leaving.Add(going);
 
         for (int i = 0; i < _queue.Count; i++)
             _queue[i].MoveTo(slots[i].position, driveSpeed);
-
-        var fresh = Rent();
-        var demand = PickDemand();
-        fresh.Configure(demand.item, ReachableAmount(demand));
-        fresh.transform.position = spawnPoint.position;
-        fresh.MoveTo(slots[_queue.Count].position, driveSpeed);
-        fresh.ShowBadge(true);
-        _queue.Add(fresh);
 
         while (_leaving.Count > MaxLeaving)
         {
@@ -135,11 +223,10 @@ public class TruckQueue : MonoBehaviour
             _leaving.RemoveAt(0);
         }
 
+        // the gap is measured from the departure, not from a clock running underneath it
+        _nextArrival = Time.time + RollGap();
         OrderVersion++;
-        EnsureFrontReachable();
     }
-
-    void Update() => RecycleArrived();
 
     void RecycleArrived()
     {
@@ -177,6 +264,7 @@ public class TruckQueue : MonoBehaviour
 
     void Return(TruckOrder t)
     {
+        t.EndWait();
         t.ShowBadge(false);
         t.gameObject.SetActive(false);
     }
@@ -197,24 +285,23 @@ public class TruckQueue : MonoBehaviour
     /// <summary>
     /// Rolls one order. Weighted rather than uniform, and entries the farm has not unlocked
     /// weigh nothing, so a level-1 player is never asked for a cake they cannot bake.
+    ///
+    /// Nothing checks whether the player can currently fill it. The queue used to, because a
+    /// truck was the only buyer and an order out of reach ended the run - but planting is free
+    /// now, the shop buys at any hour, and a truck nobody serves drives off by itself. An order
+    /// being more than they have on hand is the point: missing it costs them the next quiet
+    /// stretch, and that is what makes catching one worth the walk.
     /// </summary>
     Demand PickDemand()
     {
         if (demands == null || demands.Length == 0) return default;
 
-        // Only entries the player could actually deliver are in the running. See Reachable:
-        // the front truck blocks the queue and selling is the only income, so an order out of
-        // their reach does not slow the run down, it ends it.
         int total = 0;
-        for (int i = 0; i < demands.Length; i++)
-            if (Reachable(demands[i].item, demands[i].minAmount)) total += CurrentWeight(demands[i]);
+        for (int i = 0; i < demands.Length; i++) total += CurrentWeight(demands[i]);
 
-        // Nothing eligible would mean an empty badge and a stuck queue, so fall back to
-        // whatever the player can always grow, and only then to any entry at all.
+        // Nothing eligible would mean an empty badge, so fall back to any entry at all.
         if (total <= 0)
         {
-            for (int i = 0; i < demands.Length; i++)
-                if (Reachable(demands[i].item, demands[i].minAmount)) return demands[i];
             for (int i = 0; i < demands.Length; i++)
                 if (demands[i].item != null) return demands[i];
             return default;
@@ -223,75 +310,15 @@ public class TruckQueue : MonoBehaviour
         int roll = Random.Range(0, total);
         for (int i = 0; i < demands.Length; i++)
         {
-            if (!Reachable(demands[i].item, demands[i].minAmount)) continue;
             roll -= CurrentWeight(demands[i]);
             if (roll < 0) return demands[i];
         }
         return demands[demands.Length - 1];
     }
 
-    /// <summary>
-    /// Could the player ever put this many on the counter? What they hold, plus the seed
-    /// already in the bag, plus every seed their coins can still buy. Animals and the stove
-    /// cost only time, and the free starter crop can always be replanted, so paid seed is the
-    /// only thing that can be genuinely out of reach.
-    ///
-    /// This is not a nicety. The front truck blocks the queue, Advance() runs only after a
-    /// completed sale, and selling is the only source of coins - so an order the player cannot
-    /// fund is not a setback, it is the end of the run. An opening order of 4 Cauliflower
-    /// against 30 starting coins did exactly that in about one game in seven.
-    /// </summary>
-    static bool Reachable(ItemDef item, int amount)
-    {
-        if (item == null) return false;
-
-        int held = Inventory.ProduceCount(item);
-        if (held >= amount) return true;
-
-        var crop = item as CropDef;
-        if (crop == null || crop.seedCost <= 0) return true;
-
-        int missing = amount - held - Inventory.SeedCount(crop);
-        return missing <= 0 || Inventory.Coins >= missing * crop.seedCost;
-    }
-
-    /// <summary>The rolled amount, trimmed to what the player can actually fund.</summary>
-    static int ReachableAmount(in Demand d)
-    {
-        int amount = AmountFor(d);
-        while (amount > d.minAmount && !Reachable(d.item, amount)) amount--;
-        return amount;
-    }
-
-    /// <summary>
-    /// Keeps the order at the counter inside the player's reach. It can fall outside it after
-    /// the fact - they spend their coins on seed for something else, and nothing can be sold
-    /// in the meantime to earn them back. Trimming what the truck asks for is the only move
-    /// that does not end the run, and it never asks for more than it did a moment ago.
-    /// </summary>
-    void EnsureFrontReachable()
-    {
-        var front = Front;
-        if (front == null || front.Wanted == null) return;
-        if (Reachable(front.Wanted, front.Amount)) return;
-
-        int amount = front.Amount;
-        while (amount > 1 && !Reachable(front.Wanted, amount)) amount--;
-
-        if (Reachable(front.Wanted, amount))
-            front.Configure(front.Wanted, amount);
-        else
-        {
-            var d = PickDemand();
-            front.Configure(d.item, ReachableAmount(d));
-        }
-
-        OrderVersion++;
-    }
-
     static int AmountFor(in Demand d) =>
         Random.Range(Mathf.Max(d.minAmount, 1), Mathf.Max(d.maxAmount, Mathf.Max(d.minAmount, 1)) + 1);
 
-    /// <summary>How many truck objects exist. Should settle at slots + 1 and stop growing.</summary>
+    /// <summary>How many truck objects exist. Should settle and stop growing.</summary>
     public int PoolSize => _pool.Count;
 }

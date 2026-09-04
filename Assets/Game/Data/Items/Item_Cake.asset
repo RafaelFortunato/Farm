@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Cake
   tintColor: {r: 0.949, g: 0.78, b: 0.812, a: 1}
   icon: {fileID: 21300000, guid: d2910bcc63aa1b944865b13fc1bdd84b, type: 3}
-  sellValue: 220
+  sellValue: 700
   worldPrefab: {fileID: 6822605618499298049, guid: 9d57f55a263bb4c43b79426f5f249a95, type: 3}
   iconScale: 1
