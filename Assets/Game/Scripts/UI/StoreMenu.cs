@@ -23,6 +23,10 @@ public class StoreMenu : MonoBehaviour
     [SerializeField] SellRow sellRowPrefab;
     [SerializeField] Button closeButton;
 
+    [Tooltip("Shown centred in the panel instead of any rows, when there is currently nothing " +
+             "to sell.")]
+    [SerializeField] GameObject emptyMessage;
+
     [Header("Camera")]
     [Tooltip("How far the camera pushes in while the panel is open, in world units.")]
     public float cameraZoom = 5f;
@@ -102,14 +106,14 @@ public class StoreMenu : MonoBehaviour
     }
 
     /// <summary>
-    /// One row per thing the farm has ever made, in the order the store lists them.
+    /// One row per thing the farm currently holds, in the order the store lists them.
     ///
-    /// The roster is decided here and then left alone. Refresh runs off Inventory.Changed and
-    /// selling raises that from inside a row's own click handler, so a Refresh that rebuilt the
-    /// list would destroy the button currently dispatching the click. Keyed on what the farm has
-    /// ever produced rather than on what it holds, so a row never vanishes under the player's
-    /// finger as they sell the last one - and a farm that has made nothing shows nothing, the
-    /// same no-spoilers rule the inventory strip uses.
+    /// The roster is decided here, when the panel opens, and then left alone until the next
+    /// open. Refresh runs off Inventory.Changed and selling raises that from inside a row's own
+    /// click handler, so a Refresh that rebuilt the list would destroy the button currently
+    /// dispatching the click - instead a row sold down to zero simply keeps showing "x0" for the
+    /// rest of this visit, and only drops out of the list the next time the panel is opened.
+    /// A farm holding nothing shows the empty message instead of a bare panel.
     /// </summary>
     void BuildRows()
     {
@@ -119,20 +123,25 @@ public class StoreMenu : MonoBehaviour
         _listed.Clear();
 
         for (int i = rowContainer.childCount - 1; i >= 0; i--)
-            DestroyImmediate(rowContainer.GetChild(i).gameObject);
-
-        if (_store.sellable == null) return;
-
-        foreach (var item in _store.sellable)
         {
-            if (item == null || Inventory.LifetimeProduced(item) <= 0) continue;
-
-            var row = Instantiate(sellRowPrefab, rowContainer);
-            row.name = "SellRow_" + item.displayName;
-            row.Bind(item, Sell);
-            _rows.Add(row);
-            _listed.Add(item);
+            var child = rowContainer.GetChild(i);
+            if (emptyMessage != null && child == emptyMessage.transform) continue;
+            DestroyImmediate(child.gameObject);
         }
+
+        if (_store.sellable != null)
+            foreach (var item in _store.sellable)
+            {
+                if (item == null || Inventory.ProduceCount(item) <= 0) continue;
+
+                var row = Instantiate(sellRowPrefab, rowContainer);
+                row.name = "SellRow_" + item.displayName;
+                row.Bind(item, Sell);
+                _rows.Add(row);
+                _listed.Add(item);
+            }
+
+        if (emptyMessage != null) emptyMessage.SetActive(_listed.Count == 0);
     }
 
     /// <summary>Repaint what the rows say. Contents only, never the set of rows.</summary>
