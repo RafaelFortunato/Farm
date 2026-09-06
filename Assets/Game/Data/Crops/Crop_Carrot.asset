@@ -26,5 +26,4 @@ MonoBehaviour:
   - 1
   growSeconds: 15
   yieldPerHarvest: 4
-  seedCost: 0
-  requiredLevel: 1
+  requiredLevel: 2
