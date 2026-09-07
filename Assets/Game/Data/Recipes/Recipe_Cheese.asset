@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c261078aaa76098459b9361d6b57cc1d, type: 3}
-  m_Name: Recipe_Bread
+  m_Name: Recipe_Cheese
   m_EditorClassIdentifier: Assembly-CSharp::RecipeDef
   inputs:
-  - item: {fileID: 11400000, guid: 6765586220aad814ebbe0ac01234fd81, type: 2}
-    count: 3
-  output: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
+  - item: {fileID: 11400000, guid: 6f84a7ab5794b8643bdadac7d1706bb3, type: 2}
+    count: 2
+  output: {fileID: 11400000, guid: 7846f5635b7482b448f6de83aa67f1ac, type: 2}
   outputCount: 1
-  cookSeconds: 25
-  requiredLevel: 2
+  cookSeconds: 30
+  requiredLevel: 4

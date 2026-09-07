@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c261078aaa76098459b9361d6b57cc1d, type: 3}
-  m_Name: Recipe_Bread
+  m_Name: Recipe_CarrotSoup
   m_EditorClassIdentifier: Assembly-CSharp::RecipeDef
   inputs:
-  - item: {fileID: 11400000, guid: 6765586220aad814ebbe0ac01234fd81, type: 2}
+  - item: {fileID: 11400000, guid: 9c1a7beb05a95c84da19a60ab8bc3880, type: 2}
     count: 3
-  output: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
+  - item: {fileID: 11400000, guid: eafef1418344f82439d175c3c344c10e, type: 2}
+    count: 1
+  output: {fileID: 11400000, guid: 5e5cb217d9d994b47a3ca77a7af8d4ea, type: 2}
   outputCount: 1
-  cookSeconds: 25
-  requiredLevel: 2
+  cookSeconds: 30
+  requiredLevel: 3

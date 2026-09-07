@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c261078aaa76098459b9361d6b57cc1d, type: 3}
-  m_Name: Recipe_Bread
+  m_Name: Recipe_Salad
   m_EditorClassIdentifier: Assembly-CSharp::RecipeDef
   inputs:
-  - item: {fileID: 11400000, guid: 6765586220aad814ebbe0ac01234fd81, type: 2}
-    count: 3
-  output: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
+  - item: {fileID: 11400000, guid: 72b965e1b93775e4d88f602590e79825, type: 2}
+    count: 2
+  - item: {fileID: 11400000, guid: 9c1a7beb05a95c84da19a60ab8bc3880, type: 2}
+    count: 1
+  output: {fileID: 11400000, guid: 2ff58ab61b804e94a86cec68a58ad0df, type: 2}
   outputCount: 1
-  cookSeconds: 25
+  cookSeconds: 28
   requiredLevel: 2

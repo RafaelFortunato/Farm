@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a34094f26c19a9b4b9a1b413866b8f20, type: 3}
-  m_Name: Item_Cake
+  m_Name: Item_Salad
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef
-  displayName: Cake
-  tintColor: {r: 0.949, g: 0.78, b: 0.812, a: 1}
-  icon: {fileID: 21300000, guid: d2910bcc63aa1b944865b13fc1bdd84b, type: 3}
-  sellValue: 780
-  worldPrefab: {fileID: 6822605618499298049, guid: 9d57f55a263bb4c43b79426f5f249a95, type: 3}
+  displayName: Salad
+  tintColor: {r: 0.55, g: 0.8, b: 0.4, a: 1}
+  icon: {fileID: 21300000, guid: 869f49e379e600841896f608bec8ce4e, type: 3}
+  sellValue: 225
+  worldPrefab: {fileID: 6720557300420926973, guid: 4ae2e15bd53dc614da112f9115fefbfe, type: 3}
   iconScale: 1

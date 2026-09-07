@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c261078aaa76098459b9361d6b57cc1d, type: 3}
-  m_Name: Recipe_Bread
+  m_Name: Recipe_Omelette
   m_EditorClassIdentifier: Assembly-CSharp::RecipeDef
   inputs:
-  - item: {fileID: 11400000, guid: 6765586220aad814ebbe0ac01234fd81, type: 2}
+  - item: {fileID: 11400000, guid: 160ee6bc915f7f54b88d9071ec3b2b38, type: 2}
     count: 3
-  output: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
+  - item: {fileID: 11400000, guid: 6f84a7ab5794b8643bdadac7d1706bb3, type: 2}
+    count: 1
+  output: {fileID: 11400000, guid: 01866b101f4562841bc9691ef98641fc, type: 2}
   outputCount: 1
-  cookSeconds: 25
-  requiredLevel: 2
+  cookSeconds: 32
+  requiredLevel: 4

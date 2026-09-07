@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a34094f26c19a9b4b9a1b413866b8f20, type: 3}
-  m_Name: Item_Cake
+  m_Name: Item_Pizza
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef
-  displayName: Cake
-  tintColor: {r: 0.949, g: 0.78, b: 0.812, a: 1}
-  icon: {fileID: 21300000, guid: d2910bcc63aa1b944865b13fc1bdd84b, type: 3}
-  sellValue: 780
-  worldPrefab: {fileID: 6822605618499298049, guid: 9d57f55a263bb4c43b79426f5f249a95, type: 3}
+  displayName: Pizza
+  tintColor: {r: 0.9, g: 0.4, b: 0.3, a: 1}
+  icon: {fileID: 21300000, guid: acd96b9d8a59f3f48bdf5e2da28c5362, type: 3}
+  sellValue: 1200
+  worldPrefab: {fileID: 8318941024430871883, guid: 30a557d13d81ee64eba2fb065f5b5a60, type: 3}
   iconScale: 1
