@@ -36,6 +36,10 @@ public class MainBuilding : Interactable
     [Tooltip("Which crops can be planted follows the farmhouse.")]
     public SeedMenu cropMenu;
 
+    [Tooltip("Which foraging spots are in play follows the farmhouse, so growing the island " +
+             "opens the new ground for mushrooms as well.")]
+    public MushroomPatch mushroomPatch;
+
     [Header("Player action")]
     [Tooltip("Beat the player performs when upgrading. Leave empty to upgrade instantly.")]
     public CharacterAction upgradeAction;
@@ -170,6 +174,7 @@ public class MainBuilding : Interactable
         if (stove != null) stove.level = _level;
         if (truckQueue != null) truckQueue.level = _level;
         if (cropMenu != null) cropMenu.level = _level;
+        if (mushroomPatch != null) mushroomPatch.level = _level;
     }
 
     void Win()
