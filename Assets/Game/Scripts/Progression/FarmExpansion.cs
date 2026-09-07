@@ -70,14 +70,23 @@ public class FarmExpansion : MonoBehaviour
         // Bounds are not cumulative - the newest stage simply states the whole island.
         var reached = stages[last];
 
-        var player = GameManager.Player;
+        // GameManager only binds itself once play starts, so out of play mode the two rigs are
+        // looked up directly. That is what lets the level-preview tool show a level - island,
+        // walkable area and camera framing together - without entering play mode.
+        var player = Application.isPlaying
+            ? GameManager.Player
+            : FindFirstObjectByType<PlayerController>(FindObjectsInactive.Include);
+
         if (player != null)
         {
             player.boundsMin = reached.playerBoundsMin;
             player.boundsMax = reached.playerBoundsMax;
         }
 
-        var rig = GameManager.CameraRig;
+        var rig = Application.isPlaying
+            ? GameManager.CameraRig
+            : FindFirstObjectByType<CameraFollow>(FindObjectsInactive.Include);
+
         if (rig != null)
         {
             rig.boundsMin = reached.cameraBoundsMin;
