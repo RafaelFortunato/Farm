@@ -12,6 +12,9 @@ public class CropButton : MonoBehaviour
     [SerializeField] Button button;
     [SerializeField] TextMeshProUGUI label;
 
+    [Tooltip("The crop's own icon, so the picker reads at a glance the way the shop rows do.")]
+    [SerializeField] Image iconImage;
+
     [Tooltip("Label colour for a crop the farm has not reached yet. A greyed button alone is " +
              "too quiet against this art - the row needs to read as locked, not as boring.")]
     public Color lockedColor = new Color(0.69f, 0.23f, 0.18f);
@@ -30,6 +33,13 @@ public class CropButton : MonoBehaviour
     {
         _crop = crop;
         if (crop == null) return;
+
+        if (iconImage != null)
+        {
+            iconImage.sprite = crop.icon;
+            // A missing icon would otherwise draw as a white box, the way the shop rows guard it.
+            iconImage.enabled = crop.icon != null;
+        }
 
         if (button == null) return;
         button.onClick.RemoveAllListeners();

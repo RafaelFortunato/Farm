@@ -20,6 +20,10 @@ public class UIManager : Singleton<UIManager>
     [Header("World-space")]
     [SerializeField] InteractPrompt interactPrompt;
 
+    [Tooltip("Border arrow pointing at a waiting truck. Saved disabled like everything else here, " +
+             "and driven by TruckQueue.")]
+    [SerializeField] TruckMarker truckMarker;
+
     [Header("Panels (saved disabled, so these must be wired)")]
     [SerializeField] SeedMenu seedMenu;
     [SerializeField] StoreMenu storeMenu;
@@ -28,6 +32,9 @@ public class UIManager : Singleton<UIManager>
 
     /// <summary>The floating "E - Plant" badge over whatever the player is standing at.</summary>
     public static InteractPrompt Prompt => Instance.interactPrompt;
+
+    /// <summary>The arrow that pins a waiting truck's order to the edge of the screen.</summary>
+    public static TruckMarker TruckPointer => Instance.truckMarker;
 
     public static SeedMenu Seeds => Instance.seedMenu;
     public static StoreMenu Shop => Instance.storeMenu;
@@ -40,6 +47,7 @@ public class UIManager : Singleton<UIManager>
     {
         var missing = string.Empty;
         if (interactPrompt == null) missing += " interactPrompt";
+        if (truckMarker == null) missing += " truckMarker";
         if (seedMenu == null) missing += " seedMenu";
         if (storeMenu == null) missing += " storeMenu";
         if (recipeMenu == null) missing += " recipeMenu";

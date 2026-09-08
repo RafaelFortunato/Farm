@@ -7,17 +7,21 @@ using UnityEngine.UI;
 ///
 /// A truck is only there for half a minute and the camera rarely happens to be looking at the
 /// road, so the whole feature can pass a player by: the order badge floats over the truck, which
-/// is exactly where you cannot see it. This puts the same information - what it wants - on the
-/// border of the screen, with an arrow saying which way to run.
+/// is exactly where you cannot see it. This puts the same information - what it wants and how
+/// long is left - on the border of the screen, with an arrow saying which way to run.
 ///
 /// It hides itself the moment the truck comes into view, because at that point the badge over
 /// the truck is saying the same thing in the right place, and two of them is clutter.
+///
+/// Like InteractPrompt, this object IS the thing that gets shown and hidden, and it is driven by
+/// TruckQueue rather than by its own Update. That is what lets it sit disabled in the scene -
+/// which is how it should be saved, so it does not clutter the editor view - without going dead
+/// at runtime. Anything transient added later should follow the same shape: a public Show that
+/// is safe to call while switched off, and an owner that calls it.
 /// </summary>
 public class TruckMarker : MonoBehaviour
 {
     [Header("Wiring")]
-    [SerializeField] TruckQueue queue;
-
     [Tooltip("The thing that moves to the border. Anchored to the middle of the canvas.")]
     [SerializeField] RectTransform marker;
 
@@ -52,26 +56,47 @@ public class TruckMarker : MonoBehaviour
     RectTransform _canvas;
     Camera _cam;
     ItemDef _shown;
-    bool _captured;
-    bool _visible = true;      // impossible starting state, so the first frame always applies
     int _seconds = int.MinValue;
+    bool _ready;
 
-    void OnEnable()
+    /// <summary>
+    /// Point the marker at the truck at the gate, or pass null to put it away. Safe to call every
+    /// frame, and safe to call while this object is switched off - which is how it is saved.
+    ///
+    /// Everything is positioned before the object is switched on, so it never appears for a frame
+    /// at wherever the last truck happened to be.
+    /// </summary>
+    public void Show(TruckOrder front)
     {
-        var canvas = GetComponentInParent<Canvas>();
-        if (canvas != null) _canvas = canvas.rootCanvas.transform as RectTransform;
-        Show(false);
+        bool wanted = Place(front);
+        if (gameObject.activeSelf != wanted) gameObject.SetActive(wanted);
     }
 
-    // LateUpdate so the camera has already moved this frame - marking off a moving target from
-    // its position at the start of the frame leaves the arrow lagging a frame behind.
-    void LateUpdate()
+    // Lazy rather than OnEnable: this object starts disabled, so OnEnable has not run by the time
+    // the first Show call arrives.
+    void EnsureInit()
     {
-        var front = queue != null ? queue.Front : null;
-        if (front == null || front.Wanted == null || Menus.AnyOpen) { Show(false); return; }
+        if (_ready) return;
+
+        // Searched with inactive included - the search starts at this object, which is switched off.
+        var canvas = GetComponentInParent<Canvas>(true);
+        if (canvas == null) return;
+
+        _canvas = canvas.rootCanvas.transform as RectTransform;
+        if (group != null) group.blocksRaycasts = false;   // never in the way of a click
+        _ready = _canvas != null;
+    }
+
+    /// <summary>Works out where the marker belongs. False when there is nothing to point at.</summary>
+    bool Place(TruckOrder front)
+    {
+        if (front == null || front.Wanted == null || Menus.AnyOpen) return false;
+
+        EnsureInit();
+        if (_canvas == null) return false;
 
         if (_cam == null) _cam = Camera.main;
-        if (_cam == null || _canvas == null) { Show(false); return; }
+        if (_cam == null) return false;
 
         var viewport = _cam.WorldToViewportPoint(front.transform.position + Vector3.up * aimHeight);
 
@@ -84,11 +109,8 @@ public class TruckMarker : MonoBehaviour
         var pos = new Vector2((viewport.x - 0.5f) * size.x, (viewport.y - 0.5f) * size.y);
         var half = size * 0.5f - Vector2.one * edgePadding;
 
-        if (!behind && Mathf.Abs(pos.x) <= half.x && Mathf.Abs(pos.y) <= half.y)
-        {
-            Show(false);            // the truck is on screen; its own badge has this covered
-            return;
-        }
+        // The truck is on screen; its own badge has this covered.
+        if (!behind && Mathf.Abs(pos.x) <= half.x && Mathf.Abs(pos.y) <= half.y) return false;
 
         var dir = pos.sqrMagnitude > 0.0001f ? pos.normalized : Vector2.down;
 
@@ -98,19 +120,32 @@ public class TruckMarker : MonoBehaviour
         float reach = Mathf.Min(half.x / Mathf.Max(Mathf.Abs(dir.x), 1e-4f),
                                 half.y / Mathf.Max(Mathf.Abs(dir.y), 1e-4f));
 
-        marker.anchoredPosition = dir * reach;
+        if (marker != null) marker.anchoredPosition = dir * reach;
         if (arrowPivot != null)
             arrowPivot.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
 
         Bind(front.Wanted);
         Tick(front);
-        Show(true);
+        return true;
+    }
+
+    /// <summary>Only touches the sprites when the order actually changes.</summary>
+    void Bind(ItemDef item)
+    {
+        if (_shown == item) return;
+        _shown = item;
+
+        if (icon != null)
+        {
+            icon.sprite = item.icon;
+            icon.enabled = item.icon != null;   // a missing icon would draw as a white box
+        }
     }
 
     /// <summary>
-    /// The clock. Only rewritten when the whole second changes - this runs every frame on every
-    /// frame a truck is out there, and building the same string sixty times a second to say the
-    /// same thing is pure garbage.
+    /// The clock. Only rewritten when the whole second changes - this runs every frame a truck is
+    /// out there, and building the same string sixty times a second to say the same thing is pure
+    /// garbage.
     /// </summary>
     void Tick(TruckOrder front)
     {
@@ -131,30 +166,5 @@ public class TruckMarker : MonoBehaviour
         _seconds = left;
         countdown.text = left + "s";
         countdown.color = left <= urgentBelow ? urgentColor : calmColor;
-    }
-
-    /// <summary>Only touches the sprites when the order actually changes.</summary>
-    void Bind(ItemDef item)
-    {
-        if (_shown == item) return;
-        _shown = item;
-
-        if (icon != null)
-        {
-            icon.sprite = item.icon;
-            icon.enabled = item.icon != null;   // a missing icon would draw as a white box
-        }
-    }
-
-    void Show(bool on)
-    {
-        if (on == _visible) return;
-        _visible = on;
-
-        if (group != null)
-        {
-            group.alpha = on ? 1f : 0f;
-            group.blocksRaycasts = false;       // never in the way of a click
-        }
     }
 }

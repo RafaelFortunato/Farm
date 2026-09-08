@@ -104,6 +104,11 @@ public class TruckQueue : MonoBehaviour
 
     float _nextArrival;
 
+    // The border arrow. Held rather than looked up per frame, and read in OnEnable the way
+    // PlayerInteractor reads the interact prompt - it is saved disabled, so only a wired
+    // reference can reach it.
+    TruckMarker _marker;
+
     // Hard ceiling on trucks mid-departure. Without it a player selling faster than a truck
     // can drive off would keep renting new bodies and the pool would grow without limit,
     // which defeats the point of pooling. Worst case the oldest one is recycled early -
@@ -115,6 +120,16 @@ public class TruckQueue : MonoBehaviour
         // rebuilt here rather than Awake so a domain reload during play restores the line
         if (_queue.Count == 0) Fill(startingTrucks);
         _nextArrival = Time.time + RollGap();
+        _marker = UIManager.TruckPointer;
+    }
+
+    /// <summary>
+    /// The road can be switched off - it does not exist until the farm reaches level 3 - and a
+    /// marker pointing at a truck that is no longer there would outlive it.
+    /// </summary>
+    void OnDisable()
+    {
+        if (_marker != null) _marker.Show(null);
     }
 
     void Update()
@@ -122,6 +137,13 @@ public class TruckQueue : MonoBehaviour
         RecycleArrived();
         TickPatience();
         TickArrivals();
+    }
+
+    // The marker is aimed in LateUpdate so the camera has already moved this frame; pointing at
+    // a truck from where the camera was at the start of the frame leaves the arrow a frame behind.
+    void LateUpdate()
+    {
+        if (_marker != null) _marker.Show(Front);
     }
 
     // ---- the clock ----

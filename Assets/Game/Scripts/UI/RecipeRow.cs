@@ -11,6 +11,11 @@ using UnityEngine.UI;
 public class RecipeRow : MonoBehaviour
 {
     [SerializeField] Button button;
+
+    [Tooltip("The dish this makes, so the menu reads at a glance the way the shop and the crop " +
+             "picker do.")]
+    [SerializeField] Image iconImage;
+
     [SerializeField] TextMeshProUGUI nameLabel;
     [SerializeField] TextMeshProUGUI ingredientsLabel;
     [SerializeField] TextMeshProUGUI timeLabel;
@@ -41,6 +46,14 @@ public class RecipeRow : MonoBehaviour
         if (nameLabel != null) nameLabel.text = recipe.DisplayName;
         if (ingredientsLabel != null) ingredientsLabel.text = recipe.IngredientSummary;
         if (timeLabel != null) timeLabel.text = Mathf.RoundToInt(recipe.cookSeconds) + "s";
+
+        if (iconImage != null)
+        {
+            var made = recipe.output;
+            iconImage.sprite = made != null ? made.icon : null;
+            // A missing icon would otherwise draw as a white box, the way the other rows guard it.
+            iconImage.enabled = iconImage.sprite != null;
+        }
 
         if (button == null) return;
         button.onClick.RemoveAllListeners();
