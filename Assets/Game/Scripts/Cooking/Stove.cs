@@ -30,12 +30,18 @@ public class Stove : Interactable, ITimedProgress
     [Tooltip("Where the finished dish pops out. Defaults to this transform.")]
     public Transform outputAnchor;
 
+    [Tooltip("Icon that floats over the stove while a dish is waiting to be collected. A child " +
+             "of the stove, so it comes and goes with it.")]
+    public ReadyBadge readyBadge;
+
     [Header("Runtime (read-only)")]
     [SerializeField] StoveState _state = StoveState.Idle;
     [SerializeField] RecipeDef _cooking;
     [SerializeField] float _startedAt;
 
     string _prompt = "Cook";
+
+    ItemDef _announced;
 
     public StoveState Current => _state;
     public RecipeDef CookingNow => _cooking;
@@ -71,13 +77,14 @@ public class Stove : Interactable, ITimedProgress
     {
         base.OnEnable();
         if (outputAnchor == null) outputAnchor = transform;
-        SetState(_state);   // rebuild the cached prompt from whatever state was serialised
+        SetState(_state);   // rebuild the cached prompt, and the badge, from the serialised state
     }
 
     /// <summary>Single place where state changes, so the prompt can never drift from it.</summary>
     void SetState(StoveState next)
     {
         _state = next;
+        RefreshBadge();
         switch (_state)
         {
             case StoveState.Idle:  _prompt = "Cook"; break;
@@ -91,6 +98,24 @@ public class Stove : Interactable, ITimedProgress
     void Update()
     {
         if (_state == StoveState.Cooking && Progress >= 1f) SetState(StoveState.Ready);
+    }
+
+    /// <summary>
+    /// Puts the finished dish's icon on the badge over the stove, and takes it away again once
+    /// the dish has been collected.
+    ///
+    /// Only the Ready state, deliberately. A cook takes the better part of a minute and the ring
+    /// over the stove is already counting it down; the moment worth flagging is the one where the
+    /// food is done and nothing is happening. Driven from the state setter rather than per frame,
+    /// because the badge only ever changes when the stove does.
+    /// </summary>
+    void RefreshBadge()
+    {
+        var waiting = _state == StoveState.Ready && _cooking != null ? _cooking.output : null;
+        if (waiting == _announced) return;
+
+        _announced = waiting;
+        if (readyBadge != null) readyBadge.Show(waiting);
     }
 
     public override void Interact(PlayerInteractor interactor)

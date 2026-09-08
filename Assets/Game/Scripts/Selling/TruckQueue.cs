@@ -107,7 +107,7 @@ public class TruckQueue : MonoBehaviour
     // The border arrow. Held rather than looked up per frame, and read in OnEnable the way
     // PlayerInteractor reads the interact prompt - it is saved disabled, so only a wired
     // reference can reach it.
-    TruckMarker _marker;
+    OffscreenMarker _marker;
 
     // Hard ceiling on trucks mid-departure. Without it a player selling faster than a truck
     // can drive off would keep renting new bodies and the pool would grow without limit,
@@ -129,7 +129,7 @@ public class TruckQueue : MonoBehaviour
     /// </summary>
     void OnDisable()
     {
-        if (_marker != null) _marker.Show(null);
+        if (_marker != null) _marker.Show(null, null);
     }
 
     void Update()
@@ -143,7 +143,14 @@ public class TruckQueue : MonoBehaviour
     // a truck from where the camera was at the start of the frame leaves the arrow a frame behind.
     void LateUpdate()
     {
-        if (_marker != null) _marker.Show(Front);
+        if (_marker == null) return;
+
+        var front = Front;
+        if (front == null || front.Wanted == null) { _marker.Show(null, null); return; }
+
+        // A truck still rolling in has not started its patience, so there is no honest number to
+        // put on the clock yet - the marker blanks it rather than counting down from nothing.
+        _marker.Show(front.transform, front.Wanted, front.Waiting ? front.SecondsLeft : -1f);
     }
 
     // ---- the clock ----

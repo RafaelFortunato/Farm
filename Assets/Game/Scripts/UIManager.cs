@@ -22,7 +22,8 @@ public class UIManager : Singleton<UIManager>
 
     [Tooltip("Border arrow pointing at a waiting truck. Saved disabled like everything else here, " +
              "and driven by TruckQueue.")]
-    [SerializeField] TruckMarker truckMarker;
+    [SerializeField] OffscreenMarker truckMarker;
+
 
     [Header("Panels (saved disabled, so these must be wired)")]
     [SerializeField] SeedMenu seedMenu;
@@ -34,7 +35,7 @@ public class UIManager : Singleton<UIManager>
     public static InteractPrompt Prompt => Instance.interactPrompt;
 
     /// <summary>The arrow that pins a waiting truck's order to the edge of the screen.</summary>
-    public static TruckMarker TruckPointer => Instance.truckMarker;
+    public static OffscreenMarker TruckPointer => Instance.truckMarker;
 
     public static SeedMenu Seeds => Instance.seedMenu;
     public static StoreMenu Shop => Instance.storeMenu;

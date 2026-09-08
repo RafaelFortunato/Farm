@@ -164,7 +164,7 @@ GameObject:
   - component: {fileID: 8477584950080398633}
   - component: {fileID: 7428341995796593548}
   m_Layer: 0
-  m_Name: TruckMarker
+  m_Name: OffscreenMarker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
