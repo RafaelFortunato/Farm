@@ -19,6 +19,9 @@ public class RecipeRow : MonoBehaviour
     [SerializeField] TextMeshProUGUI nameLabel;
     [SerializeField] TextMeshProUGUI ingredientsLabel;
     [SerializeField] TextMeshProUGUI timeLabel;
+
+    [Tooltip("Stopwatch beside the cook time, the way the sell rows put a coin beside the price.")]
+    [SerializeField] Image timeIcon;
     [SerializeField] TextMeshProUGUI ownedLabel;
 
     // The row sits on a near-white button sprite, so the secondary lines are muted DARK
@@ -35,7 +38,7 @@ public class RecipeRow : MonoBehaviour
 
     // The authored colours, captured before anything dims them. Without this a second refresh
     // would grey the already-greyed colour and the row would fade a little further every time.
-    Color _nameInk, _timeInk, _ownedInk;
+    Color _nameInk, _timeInk, _ownedInk, _timeIconInk;
     bool _inkCaptured;
 
     public void Bind(RecipeDef recipe, Action<RecipeDef> onCook)
@@ -81,6 +84,9 @@ public class RecipeRow : MonoBehaviour
         if (nameLabel != null) nameLabel.color = RowInk.For(_nameInk, usable);
         if (timeLabel != null) timeLabel.color = RowInk.For(_timeInk, usable);
 
+        // The stopwatch dims with the number it belongs to, or the row reads as half-alive.
+        if (timeIcon != null) timeIcon.color = RowInk.For(_timeIconInk, usable);
+
         if (ingredientsLabel != null)
         {
             ingredientsLabel.text = unlocked ? _recipe.IngredientSummary : "Needs farmhouse Lv" + _recipe.requiredLevel;
@@ -105,5 +111,6 @@ public class RecipeRow : MonoBehaviour
         if (nameLabel != null) _nameInk = nameLabel.color;
         if (timeLabel != null) _timeInk = timeLabel.color;
         if (ownedLabel != null) _ownedInk = ownedLabel.color;
+        if (timeIcon != null) _timeIconInk = timeIcon.color;
     }
 }

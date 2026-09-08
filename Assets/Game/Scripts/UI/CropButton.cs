@@ -15,12 +15,18 @@ public class CropButton : MonoBehaviour
     [Tooltip("The crop's own icon, so the picker reads at a glance the way the shop rows do.")]
     [SerializeField] Image iconImage;
 
+    [Tooltip("How long the crop takes, or the level it is still waiting on.")]
+    [SerializeField] TextMeshProUGUI timeLabel;
+
+    [Tooltip("Stopwatch beside the duration, the way the sell rows put a coin beside the price.")]
+    [SerializeField] Image timeIcon;
+
     [Tooltip("Label colour for a crop the farm has not reached yet. A greyed button alone is " +
              "too quiet against this art - the row needs to read as locked, not as boring.")]
     public Color lockedColor = new Color(0.69f, 0.23f, 0.18f);
 
     CropDef _crop;
-    Color _labelColor;
+    Color _labelColor, _timeColor;
     bool _labelColorCached;
 
     void Reset()
@@ -41,6 +47,9 @@ public class CropButton : MonoBehaviour
             iconImage.enabled = crop.icon != null;
         }
 
+        // The name never changes for a given crop; only the right-hand column does.
+        if (label != null) label.text = crop.displayName;
+
         if (button == null) return;
         button.onClick.RemoveAllListeners();
         button.onClick.AddListener(() => onClick?.Invoke(crop));
@@ -52,16 +61,29 @@ public class CropButton : MonoBehaviour
     /// </summary>
     public void SetAvailable(bool unlocked)
     {
-        if (label != null && _crop != null)
-        {
-            // remember the authored colour once, so unlocking can put it back
-            if (!_labelColorCached) { _labelColor = label.color; _labelColorCached = true; }
+        if (_crop == null) return;
 
-            label.text = unlocked
-                ? string.Format("{0} / {1}s", _crop.displayName, Mathf.RoundToInt(_crop.growSeconds))
-                : string.Format("{0} / Lv {1}", _crop.displayName, _crop.requiredLevel);
-            label.color = unlocked ? _labelColor : lockedColor;
+        // remember the authored colours once, so unlocking can put them back
+        if (!_labelColorCached)
+        {
+            if (label != null) _labelColor = label.color;
+            if (timeLabel != null) _timeColor = timeLabel.color;
+            _labelColorCached = true;
         }
+
+        if (label != null) label.color = unlocked ? _labelColor : lockedColor;
+
+        if (timeLabel != null)
+        {
+            timeLabel.text = unlocked
+                ? Mathf.RoundToInt(_crop.growSeconds) + "s"
+                : "Lv " + _crop.requiredLevel;
+            timeLabel.color = unlocked ? _timeColor : lockedColor;
+        }
+
+        // The stopwatch only means anything beside a duration - a locked row is showing the level
+        // it is waiting on instead, and a clock next to that would read as a countdown.
+        if (timeIcon != null) timeIcon.enabled = unlocked;
 
         if (button != null) button.interactable = unlocked;
     }

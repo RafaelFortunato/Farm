@@ -12,6 +12,11 @@ using UnityEngine.UI;
 /// The source is found on a parent rather than wired by hand: the ring is always a child of
 /// the thing it counts, and that is what let the stove reuse this instead of getting a
 /// second copy of it.
+///
+/// The whole rig - this component, its canvas and the two ring images - is one prefab
+/// (Prefabs/Timer), so the plot, the stove and anything counting later all draw the same
+/// clock at the same size. It used to be a hand-copied child on each host, which is how
+/// the stove ended up with a ring nearly twice the plot's without anyone deciding it should.
 /// </summary>
 public class PlotTimer : MonoBehaviour
 {
