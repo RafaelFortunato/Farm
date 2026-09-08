@@ -27,8 +27,8 @@ public static class FarmAreaBuilder
         "--- ENVIRONMENT ---/Trees",
         "--- ENVIRONMENT ---/Decor",
         "--- ENVIRONMENT ---/Road",
-        "--- ENVIRONMENT ---/RoadFence",
-        "--- FARM ---/FieldFence",
+        "--- ENVIRONMENT ---/Fence",
+        "--- FARM ---/Plots",
     };
 
     /// <summary>
@@ -37,14 +37,12 @@ public static class FarmAreaBuilder
     /// </summary>
     static readonly (string path, int level)[] Features =
     {
-        ("--- FARM ---/Plots",                  1),   // crops
         ("--- BUILDINGS ---/Farmhouse",         1),
         ("--- BUILDINGS ---/SeedStore",         1),   // store
         ("--- BUILDINGS ---/Stove",             2),   // cooking
         ("--- ENVIRONMENT ---/bushesportalgreen", 3),
         ("--- BUILDINGS ---/SellCounter",       3),   // trucks
         ("--- FARM ---/TruckQueue",             3),
-        ("--- EXPANSION ---/Expansion_Lv2",     4),   // the ranch land off the west edge
         ("--- BUILDINGS ---/Ranch/RanchBarn",   4),
         ("--- BUILDINGS ---/Ranch/RanchSilo",   4),
         ("--- BUILDINGS ---/Ranch/AnimalPen",   4),
