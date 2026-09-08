@@ -47,6 +47,13 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
     /// <summary>True once it has waited long enough and should pull away unserved.</summary>
     public bool OutOfPatience => _waiting && Time.time >= _waitUntil;
 
+    /// <summary>
+    /// Seconds before the driver gives up. Zero while the truck is still rolling in, because the
+    /// clock does not start until it parks - counting down during the drive would promise the
+    /// player less time than they are actually going to get.
+    /// </summary>
+    public float SecondsLeft => _waiting ? Mathf.Max(0f, _waitUntil - Time.time) : 0f;
+
     // ITimedProgress - what PlotTimer reads to draw the ring over the cab
     public bool InProgress => _waiting;
     public float Progress => _waiting ? Mathf.InverseLerp(_waitFrom, _waitUntil, Time.time) : 0f;

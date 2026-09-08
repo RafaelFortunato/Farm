@@ -26,6 +26,10 @@ public class SellRow : MonoBehaviour
     Color _baseColor;
     bool _captured;
 
+    // The authored label colours, captured before anything dims them - see RowInk.
+    Color _nameInk, _priceInk, _heldInk;
+    bool _inkCaptured;
+
     /// <summary>Sets everything that depends on which item this is. Called once per build.</summary>
     public void Bind(ItemDef item, Action<ItemDef> onSell)
     {
@@ -55,9 +59,35 @@ public class SellRow : MonoBehaviour
     {
         if (_item == null) return;
 
-        if (heldLabel != null) heldLabel.text = "x" + held;
-        if (priceLabel != null) priceLabel.text = unitPrice.ToString();
+        bool usable = held > 0;
+        CaptureInk();
+
+        // A row sold down to zero stays on the list for the rest of the visit, so it has to say
+        // so in the text - the button going dead is not visible on a near-white row.
+        if (heldLabel != null)
+        {
+            heldLabel.text = "x" + held;
+            heldLabel.color = RowInk.For(_heldInk, usable);
+        }
+        if (priceLabel != null)
+        {
+            priceLabel.text = unitPrice.ToString();
+            priceLabel.color = RowInk.For(_priceInk, usable);
+        }
+        if (nameLabel != null) nameLabel.color = RowInk.For(_nameInk, usable);
+
         if (coinIcon != null) coinIcon.SetActive(true);
-        if (button != null) button.interactable = held > 0;
+        if (button != null) button.interactable = usable;
+    }
+
+    /// <summary>Remembers the prefab's own colours the first time, so dimming is reversible.</summary>
+    void CaptureInk()
+    {
+        if (_inkCaptured) return;
+        _inkCaptured = true;
+
+        if (nameLabel != null) _nameInk = nameLabel.color;
+        if (priceLabel != null) _priceInk = priceLabel.color;
+        if (heldLabel != null) _heldInk = heldLabel.color;
     }
 }

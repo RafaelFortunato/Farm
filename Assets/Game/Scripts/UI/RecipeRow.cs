@@ -21,10 +21,17 @@ public class RecipeRow : MonoBehaviour
     [Header("Colours")]
     [Tooltip("Ingredient line while the crate can pay for the recipe.")]
     public Color affordableColor = new Color(0.36f, 0.39f, 0.47f);
-    [Tooltip("Ingredient line while something is missing.")]
-    public Color shortColor = new Color(0.69f, 0.23f, 0.18f);
+    [Tooltip("Ingredient line while something is missing. Light rather than deep red: this line " +
+             "only ever appears on a disabled row, and a dark red on that mid-slate sprite reads " +
+             "at 1.3:1 - the warning the player most needs was the least legible thing there.")]
+    public Color shortColor = new Color(1f, 0.702f, 0.639f);
 
     RecipeDef _recipe;
+
+    // The authored colours, captured before anything dims them. Without this a second refresh
+    // would grey the already-greyed colour and the row would fade a little further every time.
+    Color _nameInk, _timeInk, _ownedInk;
+    bool _inkCaptured;
 
     public void Bind(RecipeDef recipe, Action<RecipeDef> onCook)
     {
@@ -49,15 +56,41 @@ public class RecipeRow : MonoBehaviour
     {
         if (_recipe == null) return;
 
+        bool usable = unlocked && affordable;
+        CaptureInk();
+
         if (ownedLabel != null)
+        {
             ownedLabel.text = _recipe.output != null ? "x" + Inventory.ProduceCount(_recipe.output) : string.Empty;
+            ownedLabel.color = RowInk.For(_ownedInk, usable);
+        }
+
+        if (nameLabel != null) nameLabel.color = RowInk.For(_nameInk, usable);
+        if (timeLabel != null) timeLabel.color = RowInk.For(_timeInk, usable);
 
         if (ingredientsLabel != null)
         {
             ingredientsLabel.text = unlocked ? _recipe.IngredientSummary : "Needs farmhouse Lv" + _recipe.requiredLevel;
-            ingredientsLabel.color = unlocked && !affordable ? shortColor : affordableColor;
+
+            // The one line that does not simply grey with the rest. A locked recipe is nothing
+            // the player can act on, so it dims; one they merely cannot pay for keeps its red,
+            // because the missing ingredients are exactly the thing to go and do something about.
+            ingredientsLabel.color = unlocked
+                ? (affordable ? affordableColor : shortColor)
+                : RowInk.For(affordableColor, false);
         }
 
-        if (button != null) button.interactable = unlocked && affordable;
+        if (button != null) button.interactable = usable;
+    }
+
+    /// <summary>Remembers the prefab's own colours the first time, so dimming is reversible.</summary>
+    void CaptureInk()
+    {
+        if (_inkCaptured) return;
+        _inkCaptured = true;
+
+        if (nameLabel != null) _nameInk = nameLabel.color;
+        if (timeLabel != null) _timeInk = timeLabel.color;
+        if (ownedLabel != null) _ownedInk = ownedLabel.color;
     }
 }

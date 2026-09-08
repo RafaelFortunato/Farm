@@ -157,6 +157,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CropButton
   button: {fileID: 3199270931965352068}
   label: {fileID: 9079382801945018247}
+  lockedColor: {r: 0.4509804, g: 0.16862746, b: 0.16470589, a: 1}
 --- !u!1 &6043928116654730364
 GameObject:
   m_ObjectHideFlags: 0
