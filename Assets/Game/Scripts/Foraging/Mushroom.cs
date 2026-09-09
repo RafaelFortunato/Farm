@@ -40,9 +40,20 @@ public class Mushroom : Interactable
              "worth walking over to pick sparkles the same way.")]
     public ParticleSystem sparkle;
 
-    [Tooltip("Seconds between twinkles, picked fresh each time from this range. Irregular on " +
-             "purpose - a steady pulse reads as machinery rather than as something growing.")]
-    public Vector2 sparkleEvery = new Vector2(0.9f, 1.8f);
+    [Tooltip("Shortest wait between twinkles, in seconds.")]
+    [Min(0.1f)] public float sparkleMinSeconds = 0.9f;
+
+    [Tooltip("Longest wait between twinkles, in seconds. Rolled fresh between the two every " +
+             "time - irregular on purpose, since a steady pulse reads as machinery rather than " +
+             "as something growing.")]
+    [Min(0.1f)] public float sparkleMaxSeconds = 1.8f;
+
+    /// <summary>A fresh gap between twinkles. Tolerates a max typed below the min.</summary>
+    float RollSparkle()
+    {
+        float lo = Mathf.Max(sparkleMinSeconds, 0.1f);
+        return UnityEngine.Random.Range(lo, Mathf.Max(sparkleMaxSeconds, lo));
+    }
 
     /// <summary>The spot this came up on. The patch reads it back to free the spot.</summary>
     public MushroomSpawnPoint Point { get; private set; }
@@ -81,7 +92,7 @@ public class Mushroom : Interactable
             visual.localScale = Vector3.one * UnityEngine.Random.Range(scaleRange.x, scaleRange.y);
         }
 
-        _nextSparkle = Time.time + UnityEngine.Random.Range(sparkleEvery.x, sparkleEvery.y);
+        _nextSparkle = Time.time + RollSparkle();
     }
 
     void Update()
@@ -89,7 +100,7 @@ public class Mushroom : Interactable
         if (_picked || sparkle == null || Time.time < _nextSparkle) return;
 
         sparkle.Play();
-        _nextSparkle = Time.time + UnityEngine.Random.Range(sparkleEvery.x, sparkleEvery.y);
+        _nextSparkle = Time.time + RollSparkle();
     }
 
     public override void Interact(PlayerInteractor interactor)

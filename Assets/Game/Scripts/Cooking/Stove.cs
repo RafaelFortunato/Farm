@@ -27,9 +27,6 @@ public class Stove : Interactable, ITimedProgress
     public CharacterAction collectAction;
 
     [Header("Wiring")]
-    [Tooltip("Where the finished dish pops out. Defaults to this transform.")]
-    public Transform outputAnchor;
-
     [Tooltip("Icon that floats over the stove while a dish is waiting to be collected. A child " +
              "of the stove, so it comes and goes with it.")]
     public ReadyBadge readyBadge;
@@ -76,7 +73,6 @@ public class Stove : Interactable, ITimedProgress
     protected override void OnEnable()
     {
         base.OnEnable();
-        if (outputAnchor == null) outputAnchor = transform;
         SetState(_state);   // rebuild the cached prompt, and the badge, from the serialised state
     }
 
@@ -153,18 +149,17 @@ public class Stove : Interactable, ITimedProgress
 
         var made = _cooking.output;
         int amount = Mathf.Max(_cooking.outputCount, 1);
-        var prefab = made.DisplayPrefab;
 
-        if (prefab != null)
-        {
-            var spawnAt = outputAnchor.position + Vector3.up * 0.3f;
-            var go = Instantiate(prefab, spawnAt, Quaternion.identity);
-            var col = go.GetComponent<Collectable>();
-            if (col == null) col = go.AddComponent<Collectable>();
-            col.item = made;
-            col.amount = amount;
-        }
-        else Inventory.AddProduce(made, amount);   // no model to fly over; still pay out
+        // Straight into the crate. A plot or a hen throws its produce as a Collectable that
+        // flies to the player, but the stove does not: the dish is already announced by the
+        // badge over the stove and the player is standing here to take it, so a model flying
+        // half a metre into them added nothing and made every cooked good need a 3D asset it
+        // otherwise has no use for.
+        Inventory.AddProduce(made, amount);
+
+        // Counted here rather than when the cook starts: a dish the player never came back for
+        // is not one they baked, and the end screen should say what came out of the stove.
+        RunStats.RecordDish();
 
         _cooking = null;
         SetState(StoveState.Idle);

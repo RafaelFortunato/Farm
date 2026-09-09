@@ -41,12 +41,50 @@ public class RecipeMenu : MonoBehaviour
         IsOpen = false;
     }
 
+    /// <summary>
+    /// The stove's list, ordered by the level that unlocks it.
+    ///
+    /// Every row says "Needs farmhouse LvN", so a list that jumps back down a tier reads as a
+    /// mistake - which is exactly what happened when a level-3 dish was appended after the
+    /// level-4 ones. Sorting here rather than asking whoever adds a recipe to insert it in the
+    /// right slot means it cannot drift again.
+    ///
+    /// Insertion sort because it is STABLE and the list is a handful of entries: recipes that
+    /// share a tier keep the order they were authored in, so the inspector still decides how
+    /// bread and salad sit relative to each other.
+    ///
+    /// Copied rather than sorted in place - _menu would otherwise alias the stove's own
+    /// serialized array and reordering it at runtime would quietly rewrite the asset.
+    /// Nulls are dropped here too: BuildRows skips them while Refresh indexes rows against
+    /// this array, so a hole in the middle would pair every later row with the wrong recipe.
+    /// </summary>
+    static RecipeDef[] ByTier(RecipeDef[] source)
+    {
+        var list = new List<RecipeDef>(source != null ? source.Length : 0);
+        if (source != null)
+            foreach (var r in source)
+                if (r != null) list.Add(r);
+
+        for (int i = 1; i < list.Count; i++)
+        {
+            var item = list[i];
+            int j = i - 1;
+            while (j >= 0 && list[j].requiredLevel > item.requiredLevel)
+            {
+                list[j + 1] = list[j];
+                j--;
+            }
+            list[j + 1] = item;
+        }
+        return list.ToArray();
+    }
+
     public void Open(Stove stove, PlayerInteractor interactor = null)
     {
         if (stove == null) return;
 
         _stove = stove;
-        _menu = stove.recipes;
+        _menu = ByTier(stove.recipes);
         _interactor = interactor;
 
         gameObject.SetActive(true);              // this object is the toggle

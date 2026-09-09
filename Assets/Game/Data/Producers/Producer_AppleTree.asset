@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProducerDef
   displayName: Apple Tree
   produces: {fileID: 11400000, guid: caaedc45fd842b748afb7432e1d2831e, type: 2}
-  regrowSeconds: 50
+  regrowMinSeconds: 50
+  regrowMaxSeconds: 70
   capacity: 3
   collectAction: {fileID: 11400000, guid: fd3e4c85d9c1f354280f79c0107e44bb, type: 2}

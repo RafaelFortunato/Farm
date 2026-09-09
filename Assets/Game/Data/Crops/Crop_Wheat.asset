@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: Wheat
   tintColor: {r: 0.85, g: 0.69, b: 0.29, a: 1}
   icon: {fileID: 21300000, guid: b9776e0b942d9c94394670f935ff4dfd, type: 3}
-  sellValue: 5
+  sellValue: 8
   worldPrefab: {fileID: 1100031708354952134, guid: 8e9578920f6c4924d83670eaa11c6133, type: 3}
   iconScale: 1
   stagePrefabs:
@@ -24,6 +24,6 @@ MonoBehaviour:
   stageScales:
   - 1
   - 1
-  growSeconds: 10
+  growSeconds: 16
   yieldPerHarvest: 4
   requiredLevel: 1

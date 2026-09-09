@@ -217,7 +217,8 @@ MonoBehaviour:
   riseRange: {x: -8, y: 34}
   standProud: 0.22
   sparkle: {fileID: 279910014828439233}
-  sparkleEvery: {x: 0.9, y: 1.8}
+  sparkleMinSeconds: 0.9
+  sparkleMaxSeconds: 1.8
 --- !u!1 &3260696232284836643
 GameObject:
   m_ObjectHideFlags: 0

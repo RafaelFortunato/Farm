@@ -53,7 +53,8 @@ MonoBehaviour:
   visual: {fileID: 2931257907664331649}
   scaleRange: {x: 0.85, y: 1.15}
   sparkle: {fileID: 3335148325104707400}
-  sparkleEvery: {x: 0.9, y: 1.8}
+  sparkleMinSeconds: 0.9
+  sparkleMaxSeconds: 1.8
 --- !u!1 &3515381970250594880
 GameObject:
   m_ObjectHideFlags: 0

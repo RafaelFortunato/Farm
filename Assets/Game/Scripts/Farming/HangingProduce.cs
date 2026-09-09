@@ -54,8 +54,19 @@ public class HangingProduce : MonoBehaviour
     [Tooltip("Star burst moved onto a ripe piece and played. Optional.")]
     public ParticleSystem sparkle;
 
-    [Tooltip("Seconds between twinkles, picked fresh each time from this range.")]
-    public Vector2 sparkleEvery = new Vector2(2.5f, 5f);
+    [Tooltip("Shortest wait between twinkles, in seconds.")]
+    [Min(0.1f)] public float sparkleMinSeconds = 2.5f;
+
+    [Tooltip("Longest wait between twinkles, in seconds. Rolled fresh between the two every " +
+             "time. Set this equal to the minimum for a steady pulse.")]
+    [Min(0.1f)] public float sparkleMaxSeconds = 5f;
+
+    /// <summary>A fresh gap between twinkles. Tolerates a max typed below the min.</summary>
+    float RollSparkle()
+    {
+        float lo = Mathf.Max(sparkleMinSeconds, 0.1f);
+        return Random.Range(lo, Mathf.Max(sparkleMaxSeconds, lo));
+    }
 
     Producer _producer;
     int _shown = -1;              // impossible count, so the first frame always applies
@@ -69,7 +80,7 @@ public class HangingProduce : MonoBehaviour
 
         Scatter();
         _shown = -1;
-        _nextSparkle = Time.time + Random.Range(sparkleEvery.x, sparkleEvery.y);
+        _nextSparkle = Time.time + RollSparkle();
     }
 
     /// <summary>
@@ -189,6 +200,6 @@ public class HangingProduce : MonoBehaviour
             sparkle.Play();
         }
 
-        _nextSparkle = Time.time + Random.Range(sparkleEvery.x, sparkleEvery.y);
+        _nextSparkle = Time.time + RollSparkle();
     }
 }

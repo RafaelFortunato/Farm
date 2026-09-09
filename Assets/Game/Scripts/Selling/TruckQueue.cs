@@ -77,10 +77,14 @@ public class TruckQueue : MonoBehaviour
     [Tooltip("How many trucks may be at the gate at once.")]
     [SerializeField] int maxParked = 1;
 
-    [Tooltip("The quiet stretch before the next truck rolls in, rolled fresh each time. Counted " +
-             "from the moment the last one pulled away rather than off a free-running clock, so " +
-             "serving an order quickly is never punished with a shorter wait for the next.")]
-    [SerializeField] Vector2 arriveAfter = new Vector2(45f, 90f);
+    [Tooltip("Shortest quiet stretch before the next truck rolls in, in seconds.")]
+    [SerializeField, Min(0.1f)] float arriveMinSeconds = 45f;
+
+    [Tooltip("Longest quiet stretch before the next truck rolls in, in seconds. Rolled fresh " +
+             "each time, and counted from the moment the last one pulled away rather than off a " +
+             "free-running clock, so serving an order quickly is never punished with a shorter " +
+             "wait for the next.")]
+    [SerializeField, Min(0.1f)] float arriveMaxSeconds = 90f;
 
     [Tooltip("How long a truck waits at the counter before giving up and driving off. The clock " +
              "starts when it parks, not when it spawns, so the drive in does not eat the window.")]
@@ -183,7 +187,12 @@ public class TruckQueue : MonoBehaviour
         _nextArrival = Time.time + RollGap();
     }
 
-    float RollGap() => Random.Range(arriveAfter.x, arriveAfter.y);
+    /// <summary>A fresh gap between trucks. Tolerates a max typed below the min.</summary>
+    float RollGap()
+    {
+        float lo = Mathf.Max(arriveMinSeconds, 0.1f);
+        return Random.Range(lo, Mathf.Max(arriveMaxSeconds, lo));
+    }
 
     float RollPayoff() => Random.Range(truckPayoff.x, truckPayoff.y);
 

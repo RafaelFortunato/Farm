@@ -32,7 +32,7 @@ public class WinPanel : MonoBehaviour
 
     CameraFollow _cameraRig;
 
-    public void Show(float seconds, int coins, int cakesBaked)
+    public void Show(float seconds, int coinsEarned, int dishesBaked, int truckOrders)
     {
         gameObject.SetActive(true);              // this object is the toggle
         if (panelRoot != null) panelRoot.SetActive(true);
@@ -40,11 +40,14 @@ public class WinPanel : MonoBehaviour
         if (headline != null) headline.text = "FARM COMPLETE";
 
         // <pos> puts the values on a shared column. A proportional font will not line them up
-        // on spaces alone, and three ragged numbers read as an accident rather than a result.
+        // on spaces alone, and a ragged stack of numbers reads as an accident, not a result.
+        // Earned rather than held: the balance punishes the player who spent everything on the
+        // last upgrade, which is exactly what they had to do to get here.
         if (stats != null)
             stats.text = "Time<pos=58%>" + Clock(seconds)
-                       + "\nCoins<pos=58%>" + coins
-                       + "\nCakes baked<pos=58%>" + cakesBaked;
+                       + "\nCoins earned<pos=58%>" + coinsEarned
+                       + "\nRecipes baked<pos=58%>" + dishesBaked
+                       + "\nTruck orders<pos=58%>" + truckOrders;
 
         // pull back rather than push in - the other menus lean toward one thing, this one
         // wants the player to see the whole island they built

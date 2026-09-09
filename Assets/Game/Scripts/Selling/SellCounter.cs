@@ -68,6 +68,7 @@ public class SellCounter : Interactable
     void CompleteSale()
     {
         Inventory.AddCoins(_pendingReward);
+        RunStats.RecordTruckOrder();
         queue.Advance();
     }
 }

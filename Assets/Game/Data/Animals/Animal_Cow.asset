@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AnimalDef
   displayName: Cow
   produces: {fileID: 11400000, guid: 6f84a7ab5794b8643bdadac7d1706bb3, type: 2}
-  regrowSeconds: 30
+  regrowMinSeconds: 30
+  regrowMaxSeconds: 30
   capacity: 2
   collectAction: {fileID: 11400000, guid: 9ec6a0649441e324cbe4dfb39c3b6852, type: 2}

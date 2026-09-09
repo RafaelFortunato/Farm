@@ -184,23 +184,8 @@ public class MainBuilding : Interactable
         var panel = UIManager.Win;
         if (panel == null) return;
 
-        panel.Show(Time.timeSinceLevelLoad, Inventory.Coins, CakesBaked());
+        panel.Show(Time.timeSinceLevelLoad, RunStats.CoinsEarned,
+                   RunStats.DishesBaked, RunStats.TruckOrdersFilled);
     }
 
-    /// <summary>
-    /// The headline number for the end screen. Read off the last upgrade's own price, so this
-    /// does not need a second hard reference to the cake asset just to count them.
-    /// </summary>
-    int CakesBaked()
-    {
-        if (ladder == null || ladder.Count == 0) return 0;
-
-        var last = ladder.steps[ladder.Count - 1];
-        if (last.alsoNeeds == null) return 0;
-
-        int most = 0;
-        foreach (var need in last.alsoNeeds)
-            if (need.item != null) most = Mathf.Max(most, Inventory.LifetimeProduced(need.item));
-        return most;
-    }
 }

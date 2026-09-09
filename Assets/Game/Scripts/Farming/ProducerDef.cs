@@ -17,8 +17,25 @@ public class ProducerDef : ScriptableObject
     [Header("Produce")]
     public ItemDef produces;
 
-    [Tooltip("Seconds to make one.")]
-    [Min(0.1f)] public float regrowSeconds = 30f;
+    [Tooltip("Shortest wait to make one, in seconds.")]
+    [Min(0.1f)] public float regrowMinSeconds = 25f;
+
+    [Tooltip("Longest wait to make one, in seconds. The wait is rolled fresh between the two " +
+             "every time, so a stand of trees stops ripening in lockstep. Set this equal to the " +
+             "minimum for a fixed tick.")]
+    [Min(0.1f)] public float regrowMaxSeconds = 35f;
+
+    /// <summary>A fresh wait. Rolled per item, so no two are ever due on the same beat.</summary>
+    public float RollRegrow()
+    {
+        // Tolerating a max below the min rather than trusting the inspector: the two are typed
+        // independently, and a half-finished edit should not freeze a producer or spam it.
+        float lo = Mathf.Max(regrowMinSeconds, 0.1f);
+        return Random.Range(lo, Mathf.Max(regrowMaxSeconds, lo));
+    }
+
+    /// <summary>Middle of the range, for anything measuring the economy rather than running it.</summary>
+    public float AverageRegrow => Mathf.Max((regrowMinSeconds + regrowMaxSeconds) * 0.5f, 0.1f);
 
     [Tooltip("How many it banks before it stops making more, so a player who wanders off " +
              "loses the surplus rather than coming back to an unbounded pile.")]

@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AnimalDef
   displayName: Chicken
   produces: {fileID: 11400000, guid: 160ee6bc915f7f54b88d9071ec3b2b38, type: 2}
-  regrowSeconds: 20
+  regrowMinSeconds: 20
+  regrowMaxSeconds: 20
   capacity: 3
   collectAction: {fileID: 11400000, guid: 5e85e5c1eae329745b9cd7e035ebf0c2, type: 2}

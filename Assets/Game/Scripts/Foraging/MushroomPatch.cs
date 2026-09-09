@@ -36,10 +36,13 @@ public class MushroomPatch : MonoBehaviour
              "without waiting out a first timer.")]
     [SerializeField] int startingMushrooms = 1;
 
-    [Tooltip("The wait before the next one comes up, rolled fresh each time. Counted from the " +
-             "moment the last one was picked rather than off a free-running clock, so clearing " +
-             "the island quickly is never punished with a shorter wait.")]
-    [SerializeField] Vector2 appearEvery = new Vector2(25f, 50f);
+    [Tooltip("Shortest wait before the next one comes up, in seconds.")]
+    [SerializeField, Min(0.1f)] float appearMinSeconds = 25f;
+
+    [Tooltip("Longest wait before the next one comes up, in seconds. Rolled fresh each time, and " +
+             "counted from the moment the last one was picked rather than off a free-running " +
+             "clock, so clearing the island quickly is never punished with a shorter wait.")]
+    [SerializeField, Min(0.1f)] float appearMaxSeconds = 50f;
 
     /// <summary>How many are standing right now.</summary>
     public int Live => _live;
@@ -89,7 +92,12 @@ public class MushroomPatch : MonoBehaviour
         _nextAt = Time.time + (Spawn() ? Roll() : 1f);
     }
 
-    float Roll() => UnityEngine.Random.Range(appearEvery.x, appearEvery.y);
+    /// <summary>A fresh wait. Tolerates a max typed below the min.</summary>
+    float Roll()
+    {
+        float lo = Mathf.Max(appearMinSeconds, 0.1f);
+        return UnityEngine.Random.Range(lo, Mathf.Max(appearMaxSeconds, lo));
+    }
 
     /// <summary>Stand one on a free unlocked spot. False when there is nowhere to put it.</summary>
     bool Spawn()

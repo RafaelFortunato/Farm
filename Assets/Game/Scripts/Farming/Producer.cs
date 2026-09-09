@@ -5,10 +5,11 @@ using UnityEngine;
 /// Anything that fills up with produce on a timer and hands over the whole store when the
 /// player walks up - a hen laying eggs, a cow, an apple tree.
 ///
-/// Unlike a plot, a producer banks what it makes: one every regrowSeconds up to its capacity,
-/// and then it waits, so the player is free to be somewhere else instead of standing
-/// over it. The clock runs on elapsed real time and catches up in one go, so a throttled
-/// browser tab loses nothing.
+/// Unlike a plot, a producer banks what it makes: one every so often up to its capacity, and
+/// then it waits, so the player is free to be somewhere else instead of standing over it. The
+/// wait is rolled fresh from the definition's range each time rather than being a fixed tick -
+/// five apple trees on one clock ripen together and read as a machine. The clock runs on
+/// elapsed real time and catches up in one go, so a throttled browser tab loses nothing.
 ///
 /// The badge is authored into the prefab - a producer always makes the same thing, so there is
 /// nothing to swap at runtime, only a count to write and a visibility to toggle. The idle sway
@@ -24,7 +25,8 @@ public class Producer : Interactable
     public ProducerDef definition;
 
     public ItemDef Produces => definition.produces;
-    public float RegrowSeconds => definition.regrowSeconds;
+    public float RegrowMin => definition.regrowMinSeconds;
+    public float RegrowMax => definition.regrowMaxSeconds;
     public int Capacity => definition.capacity;
     public CharacterAction CollectAction => definition.collectAction;
 
@@ -61,7 +63,18 @@ public class Producer : Interactable
     /// <summary>0..1 towards the next one. Sits at 1 once it is full.</summary>
     public float Progress =>
         _stored >= Capacity ? 1f
-        : Mathf.Clamp01(1f - (_nextAt - Time.time) / Mathf.Max(RegrowSeconds, 0.01f));
+        : Mathf.Clamp01(1f - (_nextAt - Time.time) / Mathf.Max(_interval, 0.01f));
+
+    // How long the wait currently running was rolled for. Kept because the badge measures
+    // progress against it, and with a rolled interval there is no fixed number to divide by.
+    float _interval;
+
+    /// <summary>Begin a fresh wait, counted from a given moment.</summary>
+    void StartWait(float from)
+    {
+        _interval = definition.RollRegrow();
+        _nextAt = from + _interval;
+    }
 
     public override bool CanInteract => _stored > 0;
 
@@ -88,7 +101,7 @@ public class Producer : Interactable
         // offset per instance so a pen full of chickens does not move in lockstep
         _phase = Random.value * Mathf.PI * 2f;
 
-        _nextAt = Time.time + RegrowSeconds;
+        StartWait(Time.time);
         SetStored(_stored);
     }
 
@@ -130,12 +143,14 @@ public class Producer : Interactable
             while (Time.time >= _nextAt && _stored + gained < Capacity)
             {
                 gained++;
-                _nextAt += RegrowSeconds;
+                // counted from when it was due, not from now, so a backgrounded tab still
+                // hands over everything it owes - each one just rolls its own length
+                StartWait(_nextAt);
             }
             if (gained > 0) SetStored(_stored + gained);
 
             // full now: hold the clock so it does not bank time it can never spend
-            if (_stored >= Capacity) _nextAt = Time.time + RegrowSeconds;
+            if (_stored >= Capacity) StartWait(Time.time);
         }
 
         if (visual != null)
@@ -179,7 +194,7 @@ public class Producer : Interactable
         }
         else Inventory.AddProduce(Produces, taken);   // no model to fly over; still pay out
 
-        _nextAt = Time.time + RegrowSeconds;
+        StartWait(Time.time);
         SetStored(0);
     }
 }

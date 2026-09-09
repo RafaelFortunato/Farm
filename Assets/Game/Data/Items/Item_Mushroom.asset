@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Mushroom
   tintColor: {r: 0.82, g: 0.45, b: 0.36, a: 1}
   icon: {fileID: 21300000, guid: b862e7e267a59104394b0b9fb351ce24, type: 3}
-  sellValue: 20
+  sellValue: 18
   worldPrefab: {fileID: 522450192520747998, guid: 1392fd565ad036744b2d2216f6eb0121, type: 3}
   iconScale: 1

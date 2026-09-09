@@ -1,14 +1,13 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 /// <summary>
 /// One truck waiting in line with an order to fill.
 ///
-/// The wanted crop is shown as its own 3D model floating over the cab - the icon sprites
-/// for the crops do not exist, and the models read instantly at this camera distance.
-/// Every crop's model is instantiated once and then just toggled, so a truck coming back
-/// out of the pool with a different order allocates nothing.
+/// The wanted item is shown as its icon on the badge over the cab. It used to be the item's
+/// own 3D model, spinning, instantiated once per item and pooled - which meant every cooked
+/// dish needed a world model built for it that nothing else used. Trucks only ask for cooked
+/// goods now, so a sprite says the same thing, costs one field, and lets the dishes be 2D.
 ///
 /// A truck pays several times what the shop does, and it will not wait forever. The clock it
 /// runs while parked is exposed as ITimedProgress, so the same ring that counts a growing crop
@@ -19,14 +18,12 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
     [Header("Badge")]
     [Tooltip("Root of the floating order badge, billboarded to the camera.")]
     public Transform badge;
-    [Tooltip("Where the wanted crop's model is parented.")]
-    public Transform modelAnchor;
-    public TextMeshProUGUI countLabel;
+    [Tooltip("Shows the wanted item's icon. A sprite rather than the item's 3D model: trucks " +
+             "only ask for cooked goods, and a dish needs no world model of its own just to be " +
+             "pictured here.")]
+    public UnityEngine.UI.Image icon;
 
-    [Header("Model")]
-    [Tooltip("Uniform scale applied to the crop model so every crop reads the same size.")]
-    public float modelScale = 0.5f;
-    public float spinSpeed = 45f;
+    public TextMeshProUGUI countLabel;
 
     public ItemDef Wanted { get; private set; }
     public int Amount { get; private set; }
@@ -58,7 +55,6 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
     public bool InProgress => _waiting;
     public float Progress => _waiting ? Mathf.InverseLerp(_waitFrom, _waitUntil, Time.time) : 0f;
 
-    readonly Dictionary<ItemDef, GameObject> _models = new Dictionary<ItemDef, GameObject>();
     Transform _tf;
     Transform _cam;
     Vector3 _target;
@@ -90,45 +86,11 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
 
         if (countLabel != null) countLabel.text = "x" + amount;
 
-        // hide whatever was shown before, then show this crop's model - built on first use
-        foreach (var kv in _models)
-            if (kv.Value != null) kv.Value.SetActive(kv.Key == crop);
-
-        if (crop != null && !_models.ContainsKey(crop))
+        if (icon != null)
         {
-            var prefab = crop.DisplayPrefab;
-
-            if (prefab != null && modelAnchor != null)
-            {
-                var go = Instantiate(prefab, modelAnchor);
-                go.transform.localPosition = Vector3.zero;
-                go.transform.localRotation = Quaternion.identity;
-                go.transform.localScale = Vector3.one * modelScale;
-                foreach (var c in go.GetComponentsInChildren<Collider>(true)) Discard(c);
-                // a model floating inside a badge should not lay a shadow across the truck
-                foreach (var r in go.GetComponentsInChildren<Renderer>(true))
-                {
-                    r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                    r.receiveShadows = false;
-                }
-                // the harvest pickup script would fly it to the player
-                var col = go.GetComponent<Collectable>();
-                if (col != null) Discard(col);
-                _models[crop] = go;
-            }
-            else _models[crop] = null;
+            icon.sprite = crop != null ? crop.icon : null;
+            icon.enabled = icon.sprite != null;   // a missing icon would draw as a white box
         }
-    }
-
-    /// <summary>
-    /// Destroy that also works outside play mode, the way SoilPlot already does it. Orders are
-    /// only configured at runtime in the real game, but an editor tool driving the queue would
-    /// otherwise leave the stripped colliders behind and log an error for each one.
-    /// </summary>
-    static void Discard(Object o)
-    {
-        if (Application.isPlaying) Destroy(o);
-        else DestroyImmediate(o);
     }
 
     /// <summary>Roll to a spot on the road. The truck drives itself the rest of the way.</summary>
@@ -176,7 +138,6 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
         if (badge != null && badge.gameObject.activeSelf)
         {
             badge.rotation = _cam.rotation;
-            if (modelAnchor != null) modelAnchor.Rotate(0f, spinSpeed * dt, 0f, Space.World);
         }
     }
 }

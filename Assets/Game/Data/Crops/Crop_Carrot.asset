@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: Carrot
   tintColor: {r: 1, g: 0.61960787, b: 0.2784314, a: 1}
   icon: {fileID: 21300000, guid: 15b37e23ee0fe8a4b861f51acfa4c986, type: 3}
-  sellValue: 8
+  sellValue: 20
   worldPrefab: {fileID: 1354996048308653523, guid: da30c56b3f093764d9d473da3bb794ef, type: 3}
   iconScale: 1
   stagePrefabs:
@@ -24,6 +24,6 @@ MonoBehaviour:
   stageScales:
   - 1
   - 1
-  growSeconds: 15
+  growSeconds: 35
   yieldPerHarvest: 4
   requiredLevel: 2

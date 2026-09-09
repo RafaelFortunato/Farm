@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Bread
   tintColor: {r: 0.788, g: 0.545, b: 0.294, a: 1}
   icon: {fileID: 21300000, guid: bc63150e5dc0d8244978564a7fc29394, type: 3}
-  sellValue: 120
+  sellValue: 100
   worldPrefab: {fileID: 1562450511784550434, guid: 90dd31c36f3997d46bb4fbbc7884b624, type: 3}
   iconScale: 1

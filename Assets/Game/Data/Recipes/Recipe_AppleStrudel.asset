@@ -10,16 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c261078aaa76098459b9361d6b57cc1d, type: 3}
-  m_Name: Recipe_Pizza
+  m_Name: Recipe_AppleStrudel
   m_EditorClassIdentifier: Assembly-CSharp::RecipeDef
   inputs:
   - item: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
     count: 1
-  - item: {fileID: 11400000, guid: 7846f5635b7482b448f6de83aa67f1ac, type: 2}
-    count: 1
-  - item: {fileID: 11400000, guid: a45b72a9679d24d46bd6e32f7634903c, type: 2}
-    count: 2
-  output: {fileID: 11400000, guid: eb9528e05b8e4e4478d7c81749a67bea, type: 2}
+  - item: {fileID: 11400000, guid: caaedc45fd842b748afb7432e1d2831e, type: 2}
+    count: 3
+  output: {fileID: 11400000, guid: f3abcf4113e16e441bf5c7fa6ef6cf79, type: 2}
   outputCount: 1
-  cookSeconds: 50
-  requiredLevel: 4
+  cookSeconds: 35
+  requiredLevel: 3

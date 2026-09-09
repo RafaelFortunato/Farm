@@ -76,6 +76,7 @@ public static class Inventory
     public static void AddCoins(int coins)
     {
         Coins += coins;
+        RunStats.RecordCoins(coins);   // every payout passes here, so the run total cannot miss one
         Changed?.Invoke();
     }
 
@@ -91,6 +92,7 @@ public static class Inventory
         ProduceCrate.Clear();
         LifetimeCrate.Clear();
         Coins = startingCoins;
+        RunStats.Reset();              // a fresh crate means a fresh run, so the tally goes too
         Changed?.Invoke();
     }
 
