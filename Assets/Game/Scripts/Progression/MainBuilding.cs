@@ -4,14 +4,16 @@ using UnityEngine;
 /// <summary>
 /// The farmhouse, and the spine of the game's progression.
 ///
-/// Each upgrade costs coins and, from the middle of the ladder on, actual produce: eggs, then
-/// bread, then cakes. That is deliberate - paying in cooked goods forces the player to run the
-/// pipeline they built rather than grind carrots, which is the arc the whole game is about.
-/// Reaching the top level wins.
+/// Every upgrade costs coins and nothing else. An earlier ladder also charged produce - eggs,
+/// then bread, then cakes - to force the player through their own pipeline, but the truck
+/// queue does that job better now that it buys only cooked goods: the pressure to run the
+/// stove comes from where the money is, rather than from a toll gate on the farmhouse door.
+/// One currency also means one number to tune when the pacing is wrong. Reaching the top
+/// level wins.
 ///
-/// Every price is payable with what the level below it can already make. An earlier ladder
-/// asked for cakes at Lv4 when the cake recipe only arrived AT Lv4, which made the game
-/// unwinnable; anything added here has to be checked against the level that must pay for it.
+/// The ladder is steep on purpose and not evenly spaced. Levels 2 and 3 are cheap, because
+/// they hand over the stove and the trucks and the game does not really start until the player
+/// has both; levels 4 and 5 carry most of the run's length.
 ///
 /// Its level is also the one number the rest of the farm reads: the stove's recipe tier and
 /// what the trucks ask for both follow it, so the world opens up in step instead of each

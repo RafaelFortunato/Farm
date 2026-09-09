@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Omelette
   tintColor: {r: 0.99, g: 0.88, b: 0.55, a: 1}
   icon: {fileID: 21300000, guid: 5f8daf7ae249ec3408baaef32524f669, type: 3}
-  sellValue: 640
+  sellValue: 670
   worldPrefab: {fileID: 8344878636811749785, guid: 4cc60c1d84364a7459d7ce80ea270a8b, type: 3}
   iconScale: 1

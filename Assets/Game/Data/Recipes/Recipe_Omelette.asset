@@ -19,5 +19,5 @@ MonoBehaviour:
     count: 1
   output: {fileID: 11400000, guid: 01866b101f4562841bc9691ef98641fc, type: 2}
   outputCount: 1
-  cookSeconds: 32
+  cookSeconds: 35
   requiredLevel: 4

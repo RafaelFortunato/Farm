@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: Corn
   tintColor: {r: 1, g: 0.85882354, b: 0.34901962, a: 1}
   icon: {fileID: 21300000, guid: 7057024effb7884468109dd2401ddab5, type: 3}
-  sellValue: 52
+  sellValue: 40
   worldPrefab: {fileID: 3592292179363212890, guid: 179272029244a8742b63543f435a1375, type: 3}
   iconScale: 1
   stagePrefabs:
@@ -24,6 +24,6 @@ MonoBehaviour:
   stageScales:
   - 1
   - 0.54420036
-  growSeconds: 30
+  growSeconds: 40
   yieldPerHarvest: 3
   requiredLevel: 3

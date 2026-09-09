@@ -19,8 +19,9 @@ public class RecipeDef : ScriptableObject
     [Header("Timing")]
     public float cookSeconds = 25f;
 
-    [Tooltip("Farmhouse level this recipe needs. The stove itself arrives at level 3.")]
-    public int requiredLevel = 3;
+    [Tooltip("Farmhouse level this recipe needs. The stove itself arrives at level 2, so 2 is " +
+             "the lowest value that can ever be cooked.")]
+    public int requiredLevel = 2;
 
     public string DisplayName => output != null ? output.displayName : name;
 

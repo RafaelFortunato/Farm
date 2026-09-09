@@ -1136,10 +1136,10 @@ Transform:
   - {fileID: 1696170020}
   - {fileID: 1333976716}
   - {fileID: 1483990559}
-  - {fileID: 1043697198}
-  - {fileID: 780179007}
   - {fileID: 1926014287}
   - {fileID: 718901035}
+  - {fileID: 1043697198}
+  - {fileID: 780179007}
   - {fileID: 656863340}
   - {fileID: 956075397}
   m_Father: {fileID: 0}
@@ -21683,7 +21683,7 @@ Transform:
   m_GameObject: {fileID: 656863339}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16, y: 0, z: -6}
+  m_LocalPosition: {x: -20, y: 0, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -23519,7 +23519,7 @@ GameObject:
   - component: {fileID: 718901035}
   - component: {fileID: 718901036}
   m_Layer: 0
-  m_Name: MushroomSpot_Lv4_4
+  m_Name: MushroomSpot_Lv3_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23534,7 +23534,7 @@ Transform:
   m_GameObject: {fileID: 718901034}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14, y: 0, z: 10}
+  m_LocalPosition: {x: -12, y: 0, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -23552,7 +23552,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83eb80961aa52a347852f5f7276f3c70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSpawnPoint
-  minLevel: 4
+  minLevel: 3
 --- !u!1001 &719326463
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25360,7 +25360,7 @@ Transform:
   m_GameObject: {fileID: 780179006}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -22, y: 0, z: -12}
+  m_LocalPosition: {x: -16, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -30844,7 +30844,7 @@ Transform:
   m_GameObject: {fileID: 956075396}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -28, y: 0, z: 2}
+  m_LocalPosition: {x: -26, y: 0, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -34050,7 +34050,7 @@ Transform:
   m_GameObject: {fileID: 1043697197}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -28, y: 0, z: 10}
+  m_LocalPosition: {x: -26, y: 0, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -42024,7 +42024,7 @@ Transform:
   m_GameObject: {fileID: 1333976715}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10, y: 0, z: 0}
+  m_LocalPosition: {x: -8, y: 0, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -45840,7 +45840,7 @@ Transform:
   m_GameObject: {fileID: 1483990558}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2, y: 0, z: -8}
+  m_LocalPosition: {x: 10, y: 0, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -48750,90 +48750,54 @@ MonoBehaviour:
   spawnPoint: {fileID: 1478720162}
   exitPoint: {fileID: 1144778571}
   demands:
-  - item: {fileID: 11400000, guid: 9c1a7beb05a95c84da19a60ab8bc3880, type: 2}
-    weightAtStart: 30
-    weightAtTop: 8
-    minLevel: 2
-    minAmount: 2
-    maxAmount: 5
-  - item: {fileID: 11400000, guid: 72b965e1b93775e4d88f602590e79825, type: 2}
-    weightAtStart: 24
-    weightAtTop: 8
-    minLevel: 2
-    minAmount: 2
-    maxAmount: 4
-  - item: {fileID: 11400000, guid: a45b72a9679d24d46bd6e32f7634903c, type: 2}
-    weightAtStart: 20
-    weightAtTop: 8
-    minLevel: 3
-    minAmount: 2
-    maxAmount: 4
-  - item: {fileID: 11400000, guid: 160ee6bc915f7f54b88d9071ec3b2b38, type: 2}
-    weightAtStart: 14
-    weightAtTop: 12
-    minLevel: 4
-    minAmount: 2
-    maxAmount: 3
-  - item: {fileID: 11400000, guid: 6f84a7ab5794b8643bdadac7d1706bb3, type: 2}
-    weightAtStart: 12
-    weightAtTop: 12
-    minLevel: 4
-    minAmount: 1
-    maxAmount: 2
   - item: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
-    weightAtStart: 10
-    weightAtTop: 22
+    weightAtStart: 40
+    weightAtTop: 8
     minLevel: 3
-    minAmount: 1
-    maxAmount: 2
-  - item: {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
-    weightAtStart: 0
-    weightAtTop: 36
-    minLevel: 4
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: 6765586220aad814ebbe0ac01234fd81, type: 2}
-    weightAtStart: 30
-    weightAtTop: 6
-    minLevel: 1
     minAmount: 2
-    maxAmount: 5
+    maxAmount: 4
   - item: {fileID: 11400000, guid: 2ff58ab61b804e94a86cec68a58ad0df, type: 2}
-    weightAtStart: 4
-    weightAtTop: 14
+    weightAtStart: 30
+    weightAtTop: 8
     minLevel: 3
     minAmount: 1
     maxAmount: 3
   - item: {fileID: 11400000, guid: 5e5cb217d9d994b47a3ca77a7af8d4ea, type: 2}
-    weightAtStart: 3
-    weightAtTop: 14
+    weightAtStart: 20
+    weightAtTop: 10
     minLevel: 3
     minAmount: 1
     maxAmount: 3
   - item: {fileID: 11400000, guid: 7846f5635b7482b448f6de83aa67f1ac, type: 2}
-    weightAtStart: 2
-    weightAtTop: 16
+    weightAtStart: 0
+    weightAtTop: 20
     minLevel: 4
     minAmount: 1
     maxAmount: 2
   - item: {fileID: 11400000, guid: 01866b101f4562841bc9691ef98641fc, type: 2}
-    weightAtStart: 2
-    weightAtTop: 16
+    weightAtStart: 0
+    weightAtTop: 20
+    minLevel: 4
+    minAmount: 1
+    maxAmount: 2
+  - item: {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
+    weightAtStart: 0
+    weightAtTop: 24
     minLevel: 4
     minAmount: 1
     maxAmount: 2
   - item: {fileID: 11400000, guid: eb9528e05b8e4e4478d7c81749a67bea, type: 2}
-    weightAtStart: 1
-    weightAtTop: 18
+    weightAtStart: 0
+    weightAtTop: 30
     minLevel: 5
     minAmount: 1
     maxAmount: 2
   level: 1
   topLevel: 5
-  truckPayoff: {x: 3, y: 5}
+  truckPayoff: {x: 2, y: 3}
   startingTrucks: 1
   maxParked: 1
-  arriveAfter: {x: 45, y: 90}
+  arriveAfter: {x: 40, y: 75}
   patience: 30
   driveSpeed: 6
 --- !u!1001 &1584471125
@@ -59968,7 +59932,7 @@ GameObject:
   - component: {fileID: 1926014287}
   - component: {fileID: 1926014288}
   m_Layer: 0
-  m_Name: MushroomSpot_Lv4_3
+  m_Name: MushroomSpot_Lv3_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -59983,7 +59947,7 @@ Transform:
   m_GameObject: {fileID: 1926014286}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -22, y: 0, z: 0}
+  m_LocalPosition: {x: -14, y: 0, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -60001,7 +59965,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83eb80961aa52a347852f5f7276f3c70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MushroomSpawnPoint
-  minLevel: 4
+  minLevel: 3
 --- !u!1001 &1928866309
 PrefabInstance:
   m_ObjectHideFlags: 0

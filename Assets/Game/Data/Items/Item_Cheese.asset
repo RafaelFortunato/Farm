@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Cheese
   tintColor: {r: 0.98, g: 0.82, b: 0.35, a: 1}
   icon: {fileID: 21300000, guid: 871eef2ce9fe656409e2ffb015e8b615, type: 3}
-  sellValue: 502
+  sellValue: 500
   worldPrefab: {fileID: 1485319667670839895, guid: faddb7582ea378c44a767cc63fe84c89, type: 3}
   iconScale: 1

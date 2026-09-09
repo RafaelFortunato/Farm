@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Salad
   tintColor: {r: 0.55, g: 0.8, b: 0.4, a: 1}
   icon: {fileID: 21300000, guid: 869f49e379e600841896f608bec8ce4e, type: 3}
-  sellValue: 225
+  sellValue: 190
   worldPrefab: {fileID: 6720557300420926973, guid: 4ae2e15bd53dc614da112f9115fefbfe, type: 3}
   iconScale: 1

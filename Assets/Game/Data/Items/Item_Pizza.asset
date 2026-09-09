@@ -15,6 +15,6 @@ MonoBehaviour:
   displayName: Pizza
   tintColor: {r: 0.9, g: 0.4, b: 0.3, a: 1}
   icon: {fileID: 21300000, guid: acd96b9d8a59f3f48bdf5e2da28c5362, type: 3}
-  sellValue: 1200
+  sellValue: 1420
   worldPrefab: {fileID: 8318941024430871883, guid: 30a557d13d81ee64eba2fb065f5b5a60, type: 3}
   iconScale: 1

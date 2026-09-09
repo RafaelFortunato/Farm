@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: Cauliflower
   tintColor: {r: 0.8509804, g: 0.8784314, b: 0.69803923, a: 1}
   icon: {fileID: 21300000, guid: d3339ba6f50c6f14fb3d178f29aff0e5, type: 3}
-  sellValue: 20
+  sellValue: 14
   worldPrefab: {fileID: 4040989165085685345, guid: 6a7f552b0ed59fc4c929726d64490e28, type: 3}
   iconScale: 1
   stagePrefabs:
@@ -24,6 +24,6 @@ MonoBehaviour:
   stageScales:
   - 1
   - 1
-  growSeconds: 22
+  growSeconds: 25
   yieldPerHarvest: 4
   requiredLevel: 2

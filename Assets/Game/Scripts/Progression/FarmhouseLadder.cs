@@ -6,9 +6,10 @@ using UnityEngine;
 /// Held as an asset rather than on the building so the whole economy can be retuned without
 /// opening the scene, next to the crops and recipes it has to stay in balance with.
 ///
-/// Every price has to be payable from the level below it. An earlier ladder asked for cakes at
-/// the step that unlocked the cake recipe, which made the game unwinnable; anything added here
-/// needs checking against what the previous level can actually produce.
+/// Coins only. Steps carry an alsoNeeds list and the farmhouse still honours it, but the
+/// balance deliberately leaves it empty - see MainBuilding for why. If produce ever goes back
+/// on a step, it has to be payable from the level BELOW it: an earlier ladder asked for cakes
+/// at the step that unlocked the cake recipe, which made the game unwinnable.
 /// </summary>
 [CreateAssetMenu(fileName = "FarmhouseLadder", menuName = "Farm/Farmhouse Ladder")]
 public class FarmhouseLadder : ScriptableObject
