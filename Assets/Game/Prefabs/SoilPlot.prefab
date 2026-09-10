@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3287593684690612775}
   - component: {fileID: 6847442673215321054}
-  - component: {fileID: 7737101423665267641}
+  - component: {fileID: 1359158070758781253}
   m_Layer: 8
   m_Name: SoilPlot
   m_TagString: Untagged
@@ -55,7 +55,7 @@ MonoBehaviour:
   _state: 0
   _crop: {fileID: 0}
   _plantedAt: 0
---- !u!65 &7737101423665267641
+--- !u!65 &1359158070758781253
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

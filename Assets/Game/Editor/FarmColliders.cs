@@ -63,8 +63,43 @@ public static class FarmColliders
         new Rule { path = "--- FARM ---/Plots",           ground = true,  footprint = 1f },
     };
 
+    /// <summary>
+    /// Whether this run is allowed to replace a collider that already exists.
+    ///
+    /// Normally it is NOT. Auto-fitting is a starting point, not the answer: a box around a
+    /// pine's canopy is not the box you actually want to walk into, and those get adjusted by
+    /// hand afterwards. An earlier version of this tool destroyed and re-created every collider
+    /// on every run, which quietly threw that work away - so the default now is to leave any
+    /// existing collider exactly as it is and only fit the ones that have none.
+    /// </summary>
+    static bool _replaceExisting;
+
     [MenuItem("Farm/Rebuild Colliders")]
     public static void Rebuild()
+    {
+        _replaceExisting = false;
+        Run();
+    }
+
+    /// <summary>
+    /// Re-fit EVERY collider from scratch, discarding anything tuned by hand. Separate menu
+    /// entry, and deliberately blunt in the name, because it is the operation that loses work.
+    /// </summary>
+    [MenuItem("Farm/Rebuild Colliders (discard hand-tuned shapes)")]
+    public static void RebuildDiscardingTuning()
+    {
+        if (!EditorUtility.DisplayDialog(
+                "Discard hand-tuned colliders?",
+                "Every collider will be re-fitted from the renderer bounds. Any collider you "
+                + "sized or moved by hand will be replaced. This cannot be undone.",
+                "Re-fit everything", "Cancel"))
+            return;
+
+        _replaceExisting = true;
+        Run();
+    }
+
+    static void Run()
     {
         int ground = LayerMask.NameToLayer("Ground");
         int obstacle = LayerMask.NameToLayer("Obstacle");
@@ -413,6 +448,15 @@ public static class FarmColliders
     static bool FitCollider(GameObject go, int layer, float footprint)
     {
         var renderers = go.GetComponentsInChildren<Renderer>(true);
+
+        // Already has collision? Then it is either ours from a previous run or, more importantly,
+        // a shape someone corrected by hand. Either way it is better than what would be computed
+        // here, so it stays. Only the explicit discard-tuning menu entry gets past this.
+        if (!_replaceExisting && go.GetComponentInChildren<BoxCollider>(true) != null)
+        {
+            SetLayerDeep(go, layer);            // the layer is still ours to keep correct
+            return false;
+        }
 
         // start clean - a rerun must not stack a new box on top of the last one
         foreach (var existing in go.GetComponentsInChildren<BoxCollider>(true))
