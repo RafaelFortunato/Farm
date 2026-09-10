@@ -11,6 +11,7 @@ using UnityEngine;
 /// of position and the Animator only poses the rig.
 /// </summary>
 [DisallowMultipleComponent]
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     static readonly int SpeedHash = Animator.StringToHash("Speed");
@@ -24,10 +25,7 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Degrees per second the cat turns to face travel direction.")]
     public float turnSpeed = 720f;
 
-    [Header("Island bounds (world XZ)")]
-    [Tooltip("The 13x13 tile island spans -12..12; inset slightly so the cat stays on solid ground.")]
-    public Vector2 boundsMin = new Vector2(-11f, -11f);
-    public Vector2 boundsMax = new Vector2(11f, 11f);
+
 
     [Header("Animation")]
     [Tooltip("Child transform holding the mesh and the body Animator.")]
@@ -57,6 +55,8 @@ public class PlayerController : MonoBehaviour
     CameraFollow _cameraRig;
     Animator _animator;
     float _invMoveSpeed;
+    CharacterController _controller;
+    int _groundMask;
     Vector3 _visualBaseLocalPos;
     Quaternion _visualBaseLocalRot;
 
@@ -89,6 +89,9 @@ public class PlayerController : MonoBehaviour
         _visualBaseLocalRot = visual.localRotation;
 
         CacheInverseSpeed();
+
+        _controller = GetComponent<CharacterController>();
+        _groundMask = 1 << LayerMask.NameToLayer("Ground");
 
         _input ??= new InputSystem_Actions();
         _input.Player.Enable();
@@ -181,11 +184,13 @@ public class PlayerController : MonoBehaviour
 
         if (CurrentSpeed > 0f)
         {
-            Vector3 p = _tf.position;
-            p.x = Mathf.Clamp(p.x + _velocity.x * dt, boundsMin.x, boundsMax.x);
-            p.z = Mathf.Clamp(p.z + _velocity.z * dt, boundsMin.y, boundsMax.y);
-            p.y = 0f;
-            _tf.position = p;
+            // One axis at a time. The CharacterController does the hard part - sliding along
+            // walls, angled ones included - and the per-axis split is only there so the LEDGE
+            // veto below can refuse one direction without killing the other, which is what
+            // lets the cat walk along a shoreline instead of stopping dead against it. The
+            // tile grid means every shoreline is axis-aligned, so splitting on X/Z is exact.
+            StepAxis(new Vector3(_velocity.x * dt, 0f, 0f));
+            StepAxis(new Vector3(0f, 0f, _velocity.z * dt));
 
             if (speedSq > 0.01f)
             {
@@ -251,11 +256,42 @@ public class PlayerController : MonoBehaviour
         _camRight = new Vector3(_camFwd.z, 0f, -_camFwd.x); // == Cross(Vector3.up, _camFwd)
     }
 
+    /// <summary>
+    /// Move along one axis, and take it back if it stepped off the island.
+    ///
+    /// Collision with anything solid is the CharacterController's job - it slides along walls
+    /// at any angle and will not tunnel, which is exactly the part not worth hand-writing.
+    ///
+    /// What it will NOT do is stop at a ledge: a shoreline is an absence of floor, and there is
+    /// nothing there to collide with. Rather than ring the island in invisible walls that would
+    /// need rebuilding every time it grows, the tiles answer the question themselves - if there
+    /// is no ground under where we landed, the step is undone.
+    /// </summary>
+    void StepAxis(Vector3 step)
+    {
+        if (step.sqrMagnitude < 1e-10f) return;
+
+        Vector3 before = _tf.position;
+        _controller.Move(step);
+
+        Vector3 after = _tf.position;
+        after.y = 0f;                       // flat farm: never let the controller drift off the plane
+        _tf.position = after;
+
+        if (!HasGround(after)) _tf.position = before;
+    }
+
+    /// <summary>
+    /// Is there floor here? Cast down from head height - starting the ray inside the very tile
+    /// it is meant to find would let it miss.
+    /// </summary>
+    bool HasGround(Vector3 p) =>
+        Physics.Raycast(p + Vector3.up, Vector3.down, 2f, _groundMask, QueryTriggerInteraction.Ignore);
+
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(0.3f, 0.9f, 0.4f, 0.6f);
-        var c = new Vector3((boundsMin.x + boundsMax.x) * 0.5f, 0.05f, (boundsMin.y + boundsMax.y) * 0.5f);
-        var s = new Vector3(boundsMax.x - boundsMin.x, 0.1f, boundsMax.y - boundsMin.y);
-        Gizmos.DrawWireCube(c, s);
+        // where the ledge test looks
+        Gizmos.color = new Color(0.3f, 0.9f, 0.4f, 0.7f);
+        Gizmos.DrawLine(transform.position + Vector3.up, transform.position + Vector3.down);
     }
 }

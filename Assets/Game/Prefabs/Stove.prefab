@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3103834959435606351}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: FocusAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7590857058323573619}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: OutputAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -72,7 +72,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8123410382094707363}
   - component: {fileID: 6876775251465826957}
-  m_Layer: 0
+  - component: {fileID: 5866092582279178605}
+  m_Layer: 9
   m_Name: Stove
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -117,11 +118,31 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 05d66c3ab512352499ef3868a03500de, type: 2}
   level: 1
   collectAction: {fileID: 11400000, guid: 6194b51c81642d74780dcc999e402e82, type: 2}
-  outputAnchor: {fileID: 7590857058323573619}
   readyBadge: {fileID: 6178677442921835632}
   _state: 0
   _cooking: {fileID: 0}
   _startedAt: 0
+--- !u!65 &5866092582279178605
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8342968343919454569}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.7561269, y: 1.3604937, z: 1.9161769}
+  m_Center: {x: 0, y: 0.68024683, z: 0}
 --- !u!1001 &2743470527126491484
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -170,9 +191,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4685938009808768011, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5164979204992226579, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6740951359292755289, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 6750333678106130215, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
       propertyPath: m_Name
       value: CookTimer
+      objectReference: {fileID: 0}
+    - target: {fileID: 6750333678106130215, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -192,9 +229,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8123410382094707363}
     m_Modifications:
+    - target: {fileID: 2599967040563570926, guid: f9df78d677c94b34b8ec88ede332a589, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 5094191227305207656, guid: f9df78d677c94b34b8ec88ede332a589, type: 3}
       propertyPath: m_Name
       value: Model
+      objectReference: {fileID: 0}
+    - target: {fileID: 5094191227305207656, guid: f9df78d677c94b34b8ec88ede332a589, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5210336357932444719, guid: f9df78d677c94b34b8ec88ede332a589, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 5618771886012923346, guid: f9df78d677c94b34b8ec88ede332a589, type: 3}
       propertyPath: m_LocalPosition.x
@@ -236,6 +285,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6672453335156155366, guid: f9df78d677c94b34b8ec88ede332a589, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7189876733386103026, guid: f9df78d677c94b34b8ec88ede332a589, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -254,9 +311,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8123410382094707363}
     m_Modifications:
+    - target: {fileID: 2217913514510140176, guid: ddef6bdf26151374cb6e8114d6722eaa, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 2403601272138004851, guid: ddef6bdf26151374cb6e8114d6722eaa, type: 3}
       propertyPath: m_Name
       value: ReadyBadge
+      objectReference: {fileID: 0}
+    - target: {fileID: 2403601272138004851, guid: ddef6bdf26151374cb6e8114d6722eaa, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 8345019869453493634, guid: ddef6bdf26151374cb6e8114d6722eaa, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 8632274544369498722, guid: ddef6bdf26151374cb6e8114d6722eaa, type: 3}
       propertyPath: m_LocalPosition.x
@@ -297,6 +366,10 @@ PrefabInstance:
     - target: {fileID: 8632274544369498722, guid: ddef6bdf26151374cb6e8114d6722eaa, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8920453770012114177, guid: ddef6bdf26151374cb6e8114d6722eaa, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

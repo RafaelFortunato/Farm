@@ -23,10 +23,6 @@ public class FarmExpansion : MonoBehaviour
         [Tooltip("Switched off - old art the new art replaces, or scenery the new land sits on.")]
         public GameObject[] disable;
 
-        [Header("How far the player may walk")]
-        public Vector2 playerBoundsMin = new Vector2(-11f, -14.3f);
-        public Vector2 playerBoundsMax = new Vector2(11f, 11f);
-
         [Header("How far the camera may look")]
         public Vector2 cameraBoundsMin = new Vector2(-7f, -15f);
         public Vector2 cameraBoundsMax = new Vector2(7f, 7f);
@@ -70,19 +66,14 @@ public class FarmExpansion : MonoBehaviour
         // Bounds are not cumulative - the newest stage simply states the whole island.
         var reached = stages[last];
 
-        // GameManager only binds itself once play starts, so out of play mode the two rigs are
-        // looked up directly. That is what lets the level-preview tool show a level - island,
-        // walkable area and camera framing together - without entering play mode.
-        var player = Application.isPlaying
-            ? GameManager.Player
-            : FindFirstObjectByType<PlayerController>(FindObjectsInactive.Include);
-
-        if (player != null)
-        {
-            player.boundsMin = reached.playerBoundsMin;
-            player.boundsMax = reached.playerBoundsMax;
-        }
-
+        // Where the player may walk is not set here any more: the ground tiles decide it, and
+        // PlayerController refuses a step with no floor under it. That means the walkable area
+        // follows whatever shape the island actually is, and grows with it, instead of being a
+        // rectangle re-tuned by hand at every level.
+        //
+        // GameManager only binds itself once play starts, so out of play mode the rig is looked
+        // up directly. That is what lets the level-preview tool frame a level without entering
+        // play mode.
         var rig = Application.isPlaying
             ? GameManager.CameraRig
             : FindFirstObjectByType<CameraFollow>(FindObjectsInactive.Include);

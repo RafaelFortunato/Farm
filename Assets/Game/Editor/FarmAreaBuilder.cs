@@ -187,7 +187,7 @@ public static class FarmAreaBuilder
 
             SetBounds(stage, lv);
             log.AppendLine("Lv" + lv + ": enable " + enable.Count + ", disable " + disable.Count +
-                           ", player " + stage.playerBoundsMin + ".." + stage.playerBoundsMax);
+                           ", camera " + stage.cameraBoundsMin + ".." + stage.cameraBoundsMax);
         }
 
         EditorUtility.SetDirty(expansion);
@@ -197,8 +197,10 @@ public static class FarmAreaBuilder
     /// How far the player may walk, and how far the camera may look, at each level.
     ///
     /// Not measured off the tiles: the island reaches well past where the player may go - the
-    /// road is fenced off, and the shoreline is scenery. These are the walkable box per level,
-    /// with the camera inset inside it so it never frames the void past the edge.
+    /// road is fenced off, and the shoreline is scenery. These figures describe the reachable
+    /// island per level, with the camera inset inside it so it never frames the void past the
+    /// edge. Only the camera reads them now - the player is stopped by the ground tiles
+    /// themselves, see FarmColliders.
     /// </summary>
     static void SetBounds(FarmExpansion.Stage stage, int level)
     {
@@ -210,9 +212,6 @@ public static class FarmAreaBuilder
             case 3: min = new Vector2(-11f, -14.3f); max = new Vector2(11f, 11f); break;
             default: min = new Vector2(-29f, -14.3f); max = new Vector2(11f, 11f); break;   // 4 and 5
         }
-
-        stage.playerBoundsMin = min;
-        stage.playerBoundsMax = max;
 
         // Same inset the hand-tuned level-3 framing used, so the camera keeps its distance from
         // the edge as the island grows.

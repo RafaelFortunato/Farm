@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 985695359460329315}
   - component: {fileID: 4179972818264213702}
   - component: {fileID: 2154629822112709644}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Apple_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,7 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9058815322126102855}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: FocusAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -132,7 +132,8 @@ GameObject:
   - component: {fileID: 1370131005021373916}
   - component: {fileID: 7793065475251537872}
   - component: {fileID: 8171267155596310924}
-  m_Layer: 0
+  - component: {fileID: 7808403627432283324}
+  m_Layer: 9
   m_Name: AppleTree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -219,6 +220,27 @@ MonoBehaviour:
   sparkle: {fileID: 279910014828439233}
   sparkleMinSeconds: 0.9
   sparkleMaxSeconds: 1.8
+--- !u!65 &7808403627432283324
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2499664404763709016}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.6955212, y: 2.4077716, z: 0.7136842}
+  m_Center: {x: -0.00000011920929, y: 1.2035112, z: -0.024765134}
 --- !u!1 &3260696232284836643
 GameObject:
   m_ObjectHideFlags: 0
@@ -230,7 +252,7 @@ GameObject:
   - component: {fileID: 6704255447957357753}
   - component: {fileID: 367553361942763422}
   - component: {fileID: 6483518486017662524}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -318,7 +340,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3397052580945666851}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Fruit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -354,7 +376,7 @@ GameObject:
   - component: {fileID: 5887709134841998937}
   - component: {fileID: 7357337899716272636}
   - component: {fileID: 4755366483587732790}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Apple_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -444,7 +466,7 @@ GameObject:
   - component: {fileID: 6324260159432592148}
   - component: {fileID: 6947807992090559665}
   - component: {fileID: 5156452004309856379}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Apple_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -534,7 +556,7 @@ GameObject:
   - component: {fileID: 2868682111341701839}
   - component: {fileID: 279910014828439233}
   - component: {fileID: 3576287298280529648}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Sparkle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
