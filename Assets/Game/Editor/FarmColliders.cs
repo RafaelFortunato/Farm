@@ -54,7 +54,13 @@ public static class FarmColliders
         new Rule { path = "--- BUILDINGS ---/Stove",      ground = false, footprint = 1f },
         new Rule { path = "--- BUILDINGS ---/SellCounter",ground = false, footprint = 1f },
         new Rule { path = "--- BUILDINGS ---/Ranch",      ground = false, footprint = 1f },
-        new Rule { path = "--- FARM ---/Plots",           ground = false, footprint = 1f },
+
+        // Soil plots are FLOOR, not furniture. The player walks over them to reach the crops,
+        // and planting is picked by proximity rather than by any collider, so treating them as
+        // obstacles only walled off the middle of the farm. They go on Ground rather than losing
+        // their collider outright because there is no tile underneath a plot - the soil is the
+        // only floor there, so it has to be what answers the ledge probe.
+        new Rule { path = "--- FARM ---/Plots",           ground = true,  footprint = 1f },
     };
 
     [MenuItem("Farm/Rebuild Colliders")]
@@ -80,7 +86,7 @@ public static class FarmColliders
             log.Append("\n  reverted ").Append(reverted).Append(" old instance override(s)");
 
         var prepared = new Dictionary<string, GameObject>();   // source asset path -> project prefab
-        int swapped = 0, inPlace = 0, orphans = 0, kept = 0;
+        int swapped = 0, inPlace = 0, orphans = 0, skipped = 0;
 
         foreach (var rule in Rules)
         {
@@ -117,10 +123,13 @@ public static class FarmColliders
 
                 if (!CanSwap(leaf.gameObject, out string why))
                 {
-                    // Swapping would throw this object's own work away, so leave it alone and
-                    // put the collider straight on it instead.
-                    if (FitCollider(leaf.gameObject, layer, rule.footprint)) kept++;
-                    log.Append("\n  kept in place (").Append(why).Append("): ").Append(leaf.name);
+                    // Not swappable, so it keeps whatever it has - and it gets NO collider of
+                    // ours either. Everything in this branch is a character: the livestock and
+                    // the shopkeeper. Fitting boxes to them gave a chicken sixteen colliders and
+                    // made the animals solid, which is not what a pen full of them should feel
+                    // like. Scenery is what this tool is for.
+                    skipped++;
+                    log.Append("\n  left alone (").Append(why).Append("): ").Append(leaf.name);
                     continue;
                 }
 
@@ -131,7 +140,7 @@ public static class FarmColliders
         log.Append("\n  scene objects re-pointed at a project prefab: ").Append(swapped)
            .Append("\n  prefabs we already owned, edited in place:    ").Append(inPlace)
            .Append("\n  scene-only objects given a collider directly: ").Append(orphans)
-           .Append("\n  left as they were, collider applied directly:  ").Append(kept);
+           .Append("\n  characters left uncollided:                   ").Append(skipped);
 
         int stubs = ReportStubMaterials(log);
 
@@ -325,50 +334,136 @@ public static class FarmColliders
     }
 
     /// <summary>
-    /// Hand every level-stage reference to the old object over to its replacement.
+    /// Hand every reference to the old object - and to anything inside it - over to the
+    /// replacement, before the old one is destroyed.
     ///
-    /// Only FarmExpansion is searched, because it is the only thing in the project holding a
-    /// direct GameObject reference to a piece of scenery; everything else finds its scenery by
-    /// path or by component. A wider sweep would need SerializedObject over every component in
-    /// the scene, which is a lot of machinery for references that do not exist.
+    /// This started out only fixing the level stages, which was too narrow and cost real damage:
+    /// the stove's ready badge and the shop's focus anchor were both silently unplugged, and a
+    /// null reference in the inspector looks exactly like one that was never filled in. Anything
+    /// in the scene may point at a piece of scenery, so everything is searched.
+    ///
+    /// Matching is by path within the object, which is exact here because the replacement is
+    /// built from the same prefab and CanSwap has already refused anything with added or removed
+    /// children.
     /// </summary>
     static void CarryReferences(GameObject old, GameObject fresh)
     {
-        var exp = Object.FindFirstObjectByType<FarmExpansion>(FindObjectsInactive.Include);
-        if (exp == null || exp.stages == null) return;
+        var moved = new Dictionary<Object, Object>();
+        MapPair(old.transform, fresh.transform, moved);
+        if (moved.Count == 0) return;
 
-        bool touched = false;
-        foreach (var stage in exp.stages)
+        foreach (var mb in Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            touched |= Swap(stage.enable, old, fresh);
-            touched |= Swap(stage.disable, old, fresh);
-        }
-        if (touched) EditorUtility.SetDirty(exp);
-    }
+            if (mb == null) continue;
 
-    static bool Swap(GameObject[] list, GameObject old, GameObject fresh)
-    {
-        if (list == null) return false;
-        bool touched = false;
-        for (int i = 0; i < list.Length; i++)
-            if (list[i] == old) { list[i] = fresh; touched = true; }
-        return touched;
+            var so = new SerializedObject(mb);
+            bool touched = false;
+
+            var p = so.GetIterator();
+            while (p.NextVisible(true))
+            {
+                if (p.propertyType != SerializedPropertyType.ObjectReference) continue;
+                var target = p.objectReferenceValue;
+                if (target == null) continue;
+                if (!moved.TryGetValue(target, out var replacement)) continue;
+
+                p.objectReferenceValue = replacement;
+                touched = true;
+            }
+
+            if (touched) so.ApplyModifiedPropertiesWithoutUndo();
+        }
     }
 
     /// <summary>
-    /// One box on the root, sized to what the thing actually draws.
+    /// Pair up an object with its replacement - the GameObject, its Transform and every
+    /// component on it - then walk their children together.
+    /// </summary>
+    static void MapPair(Transform from, Transform to, Dictionary<Object, Object> moved)
+    {
+        moved[from.gameObject] = to.gameObject;
+        moved[from] = to;
+
+        var fromComponents = from.GetComponents<Component>();
+        foreach (var c in fromComponents)
+        {
+            if (c == null) continue;
+            var match = to.GetComponent(c.GetType());
+            if (match != null) moved[c] = match;
+        }
+
+        for (int i = 0; i < from.childCount && i < to.childCount; i++)
+            MapPair(from.GetChild(i), to.GetChild(i), moved);
+    }
+
+    /// <summary>
+    /// Give this object collision, shaped to what it actually draws.
     ///
-    /// Measured off the renderers rather than the transform: these are kitbashed prefabs whose
-    /// pivots sit anywhere, so the transform says nothing useful about where the geometry is.
-    /// Corners are pulled back into local space so the box survives rotation and scale.
+    /// Usually that is one box on the root, measured off the renderers rather than the transform:
+    /// these are kitbashed prefabs whose pivots sit anywhere, so the transform says nothing about
+    /// where the geometry is. Corners are pulled back into local space so the box survives
+    /// rotation and scale.
+    ///
+    /// HOLLOW things are the exception, and they matter more than they sound. An animal pen is
+    /// seventeen fence panels arranged in a ring; one box around them is thirteen times the
+    /// volume of the fence itself, and all of that surplus is the pen INTERIOR - which is exactly
+    /// where the player needs to walk to reach the plots inside. So when the enclosing box is
+    /// much larger than the pieces it contains, each piece gets its own box instead.
     /// </summary>
     static bool FitCollider(GameObject go, int layer, float footprint)
     {
-        var t = go.transform;
         var renderers = go.GetComponentsInChildren<Renderer>(true);
 
+        // start clean - a rerun must not stack a new box on top of the last one
+        foreach (var existing in go.GetComponentsInChildren<BoxCollider>(true))
+            Object.DestroyImmediate(existing);
+
+        if (!Measure(go.transform, renderers, out Bounds whole)) return false;
+
+        if (IsHollow(whole, renderers))
+        {
+            bool made = false;
+            foreach (var r in renderers)
+            {
+                if (r is ParticleSystemRenderer) continue;
+                if (!Measure(r.transform, new[] { r }, out Bounds part)) continue;
+                AddBox(r.gameObject, part, footprint);
+                made = true;
+            }
+            if (made) { SetLayerDeep(go, layer); return true; }
+        }
+
+        AddBox(go, whole, footprint);
+        SetLayerDeep(go, layer);
+        return true;
+    }
+
+    /// <summary>
+    /// Does this thing enclose far more space than it fills? A ring of fence does; a barn does
+    /// not. Compared by volume because that is what decides whether the middle is walkable.
+    /// </summary>
+    static bool IsHollow(Bounds whole, Renderer[] renderers)
+    {
+        int drawn = 0;
+        float parts = 0f;
+        foreach (var r in renderers)
+        {
+            if (r is ParticleSystemRenderer) continue;
+            drawn++;
+            var s = r.bounds.size;
+            parts += s.x * s.y * s.z;
+        }
+        if (drawn < 2 || parts <= 0.0001f) return false;
+
+        float enclosing = whole.size.x * whole.size.y * whole.size.z;
+        return enclosing > parts * 2.5f;
+    }
+
+    /// <summary>World-space renderer bounds, expressed in the given transform's local space.</summary>
+    static bool Measure(Transform t, Renderer[] renderers, out Bounds local)
+    {
+        local = default;
         bool any = false;
-        Bounds local = default;
         foreach (var r in renderers)
         {
             if (r is ParticleSystemRenderer) continue;      // sparkles are not geometry
@@ -383,21 +478,29 @@ public static class FarmColliders
                 else local.Encapsulate(p);
             }
         }
-        if (!any) return false;
+        return any;
+    }
 
-        foreach (var existing in go.GetComponents<BoxCollider>()) Object.DestroyImmediate(existing);
-
+    static void AddBox(GameObject go, Bounds local, float footprint)
+    {
         var box = go.AddComponent<BoxCollider>();
         box.center = local.center;
         box.size = new Vector3(Mathf.Max(local.size.x * footprint, 0.01f),
                                Mathf.Max(local.size.y, 0.01f),
                                Mathf.Max(local.size.z * footprint, 0.01f));
-
-        SetLayerDeep(go, layer);
-        return true;
     }
 
-    /// <summary>The individual objects under a container, seeing through the Lv1..Lv4 grouping.</summary>
+    /// <summary>
+    /// The individual objects under a container, seeing through the Lv1..Lv4 grouping and
+    /// through plain grouping objects.
+    ///
+    /// "Plain" means an empty transform that only holds other things - a level group, or a rig
+    /// like AnimalPen that is really seventeen separate fence prefabs. Those have to be opened
+    /// up, or the pen gets one collider of its own instead of each panel inheriting one from the
+    /// fence prefab, which is both the wrong shape and an instance override.
+    ///
+    /// Anything that draws or comes from a prefab is a leaf and is handled as one piece.
+    /// </summary>
     static List<Transform> LeavesOf(string path)
     {
         var found = new List<Transform>();
@@ -408,16 +511,24 @@ public static class FarmColliders
             return found;
         }
 
-        foreach (Transform child in container.transform)
-        {
-            bool isLevelGroup = child.name.Length == 3 && child.name.StartsWith("Lv");
-            if (isLevelGroup)
-                foreach (Transform leaf in child) found.Add(leaf);
-            else
-                found.Add(child);
-        }
+        Collect(container.transform, found, 0);
         return found;
     }
+
+    static void Collect(Transform parent, List<Transform> found, int depth)
+    {
+        foreach (Transform child in parent)
+        {
+            if (depth < 3 && IsPlainGrouping(child)) Collect(child, found, depth + 1);
+            else found.Add(child);
+        }
+    }
+
+    /// <summary>An empty holder: no geometry of its own, not a prefab, and it has children.</summary>
+    static bool IsPlainGrouping(Transform t) =>
+        t.childCount > 0
+        && t.GetComponent<Renderer>() == null
+        && !PrefabUtility.IsAnyPrefabInstanceRoot(t.gameObject);
 
     static string SafeName(string assetPath)
     {

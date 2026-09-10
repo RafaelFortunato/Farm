@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 3287593684690612775}
   - component: {fileID: 6847442673215321054}
-  - component: {fileID: 4651903951680086079}
-  m_Layer: 9
+  - component: {fileID: 7737101423665267641}
+  m_Layer: 8
   m_Name: SoilPlot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55,7 +55,7 @@ MonoBehaviour:
   _state: 0
   _crop: {fileID: 0}
   _plantedAt: 0
---- !u!65 &4651903951680086079
+--- !u!65 &7737101423665267641
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -85,7 +85,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5924350286498944799}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: CropAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -157,15 +157,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4685938009808768011, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 5164979204992226579, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6740951359292755289, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6750333678106130215, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
       propertyPath: m_Name
@@ -173,7 +173,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6750333678106130215, guid: 05941fd4a15c64346a9e7316fdd280b7, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -239,7 +239,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1787263219254001300, guid: c7c54066debef28409bc2fe39152fe52, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

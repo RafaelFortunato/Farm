@@ -1935,10 +1935,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Animal
   focusAnchor: {fileID: 2252081955056204745}
-  produces: {fileID: 11400000, guid: 6f84a7ab5794b8643bdadac7d1706bb3, type: 2}
-  regrowSeconds: 40
-  capacity: 2
-  collectAction: {fileID: 11400000, guid: 9ec6a0649441e324cbe4dfb39c3b6852, type: 2}
+  definition: {fileID: 0}
   badge: {fileID: 6660537056846024642}
   modelAnchor: {fileID: 5902173079593099459}
   countLabel: {fileID: 766728385432332770}
@@ -2860,6 +2857,10 @@ PrefabInstance:
     - target: {fileID: 5697800158797286517, guid: e27740dc0f71e6242933939d6050fd41, type: 3}
       propertyPath: m_Name
       value: Food_Milk Bottle
+      objectReference: {fileID: 0}
+    - target: {fileID: 5697800158797286517, guid: e27740dc0f71e6242933939d6050fd41, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6058005046915329440, guid: e27740dc0f71e6242933939d6050fd41, type: 3}
       propertyPath: m_CastShadows

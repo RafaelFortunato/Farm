@@ -730,10 +730,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Animal
   focusAnchor: {fileID: 5899514080248999902}
-  produces: {fileID: 11400000, guid: 160ee6bc915f7f54b88d9071ec3b2b38, type: 2}
-  regrowSeconds: 30
-  capacity: 3
-  collectAction: {fileID: 11400000, guid: 5e85e5c1eae329745b9cd7e035ebf0c2, type: 2}
+  definition: {fileID: 0}
   badge: {fileID: 4548416715224255464}
   modelAnchor: {fileID: 2713841272160635306}
   countLabel: {fileID: 7482556131013085130}
@@ -1867,6 +1864,10 @@ PrefabInstance:
     - target: {fileID: 4077141521328887635, guid: 26dd2342357dc454bb29148a4339dd1d, type: 3}
       propertyPath: m_Name
       value: Food_Egg
+      objectReference: {fileID: 0}
+    - target: {fileID: 4077141521328887635, guid: 26dd2342357dc454bb29148a4339dd1d, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4871292149956620301, guid: 26dd2342357dc454bb29148a4339dd1d, type: 3}
