@@ -481,6 +481,7 @@ MonoBehaviour:
   sellRowPrefab: {fileID: 8154915012192577530, guid: 0748d8681f7a7dd438e1b8031f197369, type: 3}
   closeButton: {fileID: 7086989575105245149}
   emptyMessage: {fileID: 2027053326156273116}
+  sellSound: {fileID: 11400000, guid: 79b242f80b31dea43bcac89c734df35d, type: 2}
   cameraZoom: 5
   cameraPitch: -8
   cameraBlend: 0.35

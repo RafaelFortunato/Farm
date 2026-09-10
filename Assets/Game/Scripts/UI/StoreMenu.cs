@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,6 +26,10 @@ public class StoreMenu : MonoBehaviour
     [Tooltip("Shown centred in the panel instead of any rows, when there is currently nothing " +
              "to sell.")]
     [SerializeField] GameObject emptyMessage;
+
+    [Tooltip("Cash register, played on each item sold. Kept quiet on purpose - this fires once " +
+             "per click and a player emptying a crate will click it a lot.")]
+    [SerializeField] SoundEvent sellSound;
 
     [Header("Camera")]
     [Tooltip("How far the camera pushes in while the panel is open, in world units.")]
@@ -67,6 +71,8 @@ public class StoreMenu : MonoBehaviour
     {
         if (store == null) return;
 
+        AudioManager.PlayOpen();
+
         _store = store;
         _interactor = interactor;
 
@@ -96,6 +102,7 @@ public class StoreMenu : MonoBehaviour
 
     public void Close()
     {
+        AudioManager.PlayClose();
         _store = null;
         _interactor = null;
         IsOpen = false;
@@ -161,8 +168,17 @@ public class StoreMenu : MonoBehaviour
     void Sell(ItemDef item)
     {
         if (_store == null || item == null) return;
-        if (!Inventory.TrySpendProduce(item, 1)) { Refresh(); return; }
+        if (!Inventory.TrySpendProduce(item, 1)) { AudioManager.PlayDenied(); Refresh(); return; }
 
         Inventory.AddCoins(item.sellValue);
+
+        // After the spend succeeds, so a refused click stays silent - a sound on a sale that
+        // did not happen reads as if it did. Flat rather than positional: this is a panel in
+        // front of the player, not a thing across the farm.
+        //
+        // Selling is one click per item, so a player emptying a crate hammers this. The event
+        // asset carries the guards for that: a low level, a wide pitch spread so repeats do not
+        // stack into one tone, and a short clip that frees its voice quickly.
+        AudioManager.PlayUI(sellSound);
     }
 }

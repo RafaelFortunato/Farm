@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -67,6 +67,10 @@ public class WinPanel : MonoBehaviour
 
     public void Close()
     {
+        // The other panels announce their own close; this one is the last thing the player
+        // touches in a run, so it gets the same courtesy rather than shutting in silence.
+        AudioManager.PlayClose();
+
         IsOpen = false;
         if (_cameraRig != null) _cameraRig.ClearActionFraming();
         gameObject.SetActive(false);

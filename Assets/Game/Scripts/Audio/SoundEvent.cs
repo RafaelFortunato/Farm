@@ -31,6 +31,15 @@ public class SoundEvent : ScriptableObject
              "on itself. 0 plays every request.")]
     [SerializeField] float minRetriggerInterval = 0.06f;
 
+    [Header("Timing")]
+    [Tooltip("Seconds to wait before this is heard. Most sounds want 0 - they fire the instant " +
+             "the thing happens. It exists for sounds that play UNDER an animation, where the " +
+             "moment they belong to is a little way into the clip: the planting pat lands when " +
+             "the cat's hand reaches the soil, not when the button was pressed. Tuning it here " +
+             "rather than at the call site keeps the delay with the sound it belongs to, so a " +
+             "swapped clip brings its own timing.")]
+    [SerializeField, Min(0f)] float startDelay;
+
     [Header("Space")]
     [Tooltip("How much this sound is positioned in the world. 0 is flat stereo (use " +
              "for UI), 1 is fully positional. Leave negative to take the manager's " +
@@ -43,6 +52,9 @@ public class SoundEvent : ScriptableObject
 
     public float Volume => volume;
     public float MinRetriggerInterval => minRetriggerInterval;
+
+    /// <summary>Seconds between the request and the sound being audible. 0 for almost everything.</summary>
+    public float StartDelay => startDelay;
 
     /// <summary>Blend authored on this sound, or a negative value to take the manager's default.</summary>
     public float SpatialBlendOverride => spatialBlend;

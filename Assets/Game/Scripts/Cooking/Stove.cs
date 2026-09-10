@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// The stove: turns raw produce into something worth far more.
@@ -30,6 +30,14 @@ public class Stove : Interactable, ITimedProgress
     [Tooltip("Icon that floats over the stove while a dish is waiting to be collected. A child " +
              "of the stove, so it comes and goes with it.")]
     public ReadyBadge readyBadge;
+
+    [Header("Sound")]
+    [Tooltip("The moment a cook begins.")]
+    [SerializeField] SoundEvent cookStartSound;
+    [Tooltip("Kitchen bell when the dish finishes, matching the badge that appears with it.")]
+    [SerializeField] SoundEvent readySound;
+    [Tooltip("Taking the finished dish off the stove.")]
+    [SerializeField] SoundEvent collectSound;
 
     [Header("Runtime (read-only)")]
     [SerializeField] StoveState _state = StoveState.Idle;
@@ -79,7 +87,12 @@ public class Stove : Interactable, ITimedProgress
     /// <summary>Single place where state changes, so the prompt can never drift from it.</summary>
     void SetState(StoveState next)
     {
+        // Only on the CHANGE into Ready, and only in play: SetState also runs on enable to
+        // rebuild the prompt from serialised state, which must stay silent.
+        bool justFinished = next == StoveState.Ready && _state != StoveState.Ready;
+
         _state = next;
+        if (justFinished) AudioManager.PlayAt(readySound, transform.position);
         RefreshBadge();
         switch (_state)
         {
@@ -123,6 +136,7 @@ public class Stove : Interactable, ITimedProgress
                 break;
             case StoveState.Ready:
                 // The dish pops out at the end of the beat, so the animation reads as its cause.
+                AudioManager.PlayAt(collectSound, transform.position);
                 interactor.Controller.BeginAction(collectAction, transform, Collect);
                 break;
         }
@@ -139,6 +153,7 @@ public class Stove : Interactable, ITimedProgress
 
         _cooking = recipe;
         _startedAt = Time.time;
+        AudioManager.PlayAt(cookStartSound, transform.position);
         SetState(StoveState.Cooking);
         return true;
     }

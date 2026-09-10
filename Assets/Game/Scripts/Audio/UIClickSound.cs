@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
@@ -43,5 +43,12 @@ public class UIClickSound : MonoBehaviour
     }
 
     /// <summary>Plays the click. Routed through AudioManager so it obeys the SFX volume.</summary>
-    void Play() => AudioManager.PlayUI(clickSound);
+    void Play()
+    {
+        // An empty slot means "the normal click", not "silent" - that is what almost every
+        // button wants, and it keeps the shared sound in one place. A button that needs its
+        // own voice still overrides it here.
+        if (clickSound != null) AudioManager.PlayUI(clickSound);
+        else AudioManager.PlayClick();
+    }
 }

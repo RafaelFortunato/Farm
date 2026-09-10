@@ -55,6 +55,39 @@ public class AudioManager : MonoBehaviour
     [Tooltip("Looping bed under everything else - birdsong, wind. Optional.")]
     [SerializeField] AudioClip ambienceLoop;
 
+    // Sounds that are the SAME everywhere they happen. A button click is a button click
+    // whichever panel it is on, so a field per panel would be four references to one asset and
+    // four chances to leave one empty. Sounds that belong to a particular thing - the stove, the
+    // sell counter - stay on that thing, where they can be swapped without affecting anything
+    // else.
+    [Header("Shared cues")]
+    [Tooltip("Any plain button press.")]
+    [SerializeField] SoundEvent uiClick;
+    [Tooltip("A panel appearing.")]
+    [SerializeField] SoundEvent uiOpen;
+    [Tooltip("A panel dismissed.")]
+    [SerializeField] SoundEvent uiClose;
+    [Tooltip("An action the player asked for and cannot have - too few coins, too few crops.")]
+    [SerializeField] SoundEvent uiDenied;
+    [Tooltip("Anything entering the crate. Fires once per item, so it is authored quiet.")]
+    [SerializeField] SoundEvent pickup;
+
+    /// <summary>A plain button press.</summary>
+    public static void PlayClick() => PlayUI(Instance != null ? Instance.uiClick : null);
+
+    /// <summary>A panel appearing.</summary>
+    public static void PlayOpen() => PlayUI(Instance != null ? Instance.uiOpen : null);
+
+    /// <summary>A panel dismissed.</summary>
+    public static void PlayClose() => PlayUI(Instance != null ? Instance.uiClose : null);
+
+    /// <summary>An action the player cannot afford or is otherwise refused.</summary>
+    public static void PlayDenied() => PlayUI(Instance != null ? Instance.uiDenied : null);
+
+    /// <summary>Something landed in the crate, at the spot it came from.</summary>
+    public static void PlayPickup(Vector3 position)
+        => PlayAt(Instance != null ? Instance.pickup : null, position);
+
     [Header("Debug")]
     [Tooltip("Log every sound that actually plays. Rate-limited requests are not " +
              "logged, so the console shows what was heard rather than what was asked " +
@@ -247,7 +280,12 @@ public class AudioManager : MonoBehaviour
                            : authored >= 0f ? authored
                            : worldSpatialBlend;
 
-        voice.Play();
+        // PlayDelayed rather than a coroutine: the voice is claimed NOW, so the rate limit and
+        // the voice-stealing order both see it as busy for the whole wait. A coroutine would
+        // leave the voice free in between and let a later sound take it out from underneath.
+        float wait = sound.StartDelay;
+        if (wait > 0f) voice.PlayDelayed(wait);
+        else voice.Play();
 
         if (logPlays)
         {

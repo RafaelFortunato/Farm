@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -43,6 +43,12 @@ public class TruckQueue : MonoBehaviour
     }
 
     [Header("Wiring")]
+    [Header("Sound")]
+    [Tooltip("A truck rolling up to the counter. Optional.")]
+    [SerializeField] SoundEvent arriveSound;
+    [Tooltip("A truck pulling away, served or not. Optional.")]
+    [SerializeField] SoundEvent departSound;
+
     [SerializeField] TruckOrder truckPrefab;
     [Tooltip("Extra truck bodies to alternate between, purely for variety. Optional.")]
     [SerializeField] TruckOrder[] truckVariants;
@@ -224,6 +230,12 @@ public class TruckQueue : MonoBehaviour
         var d = PickDemand();
         t.Configure(d.item, AmountFor(d), RollPayoff());
         t.transform.position = spawnPoint.position;
+
+        // At the SLOT rather than the spawn point: the truck starts off-screen and the engine
+        // should read as approaching the counter the player is standing at, not as a noise
+        // from somewhere out of frame.
+        AudioManager.PlayAt(arriveSound, slots[_queue.Count].position);
+
         t.MoveTo(slots[_queue.Count].position, driveSpeed);
         t.ShowBadge(true);
         _queue.Add(t);
@@ -244,6 +256,8 @@ public class TruckQueue : MonoBehaviour
         if (_queue.Count == 0) return;
 
         RecycleArrived();
+
+        AudioManager.PlayAt(departSound, _queue[0].transform.position);
 
         var going = _queue[0];
         _queue.RemoveAt(0);

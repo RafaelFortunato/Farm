@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// One tile of fertile soil.
@@ -18,6 +18,15 @@ public class SoilPlot : Interactable, ITimedProgress
     public CharacterAction plantAction;
     [Tooltip("Beat the player performs when pulling a crop. Leave empty to harvest instantly.")]
     public CharacterAction harvestAction;
+
+    [Header("Sound")]
+    [Tooltip("Seed going into the soil, at the end of the planting beat.")]
+    [SerializeField] SoundEvent plantSound;
+    [Tooltip("Crop coming out of the soil.")]
+    [SerializeField] SoundEvent harvestSound;
+    [Tooltip("Quiet chime when this plot ripens. Every plot in a field can ripen within " +
+             "a few seconds of each other, so the event asset rate-limits itself.")]
+    [SerializeField] SoundEvent readySound;
 
     [Header("Runtime (read-only)")]
     [SerializeField] PlotState _state = PlotState.Empty;
@@ -57,7 +66,13 @@ public class SoilPlot : Interactable, ITimedProgress
     /// <summary>Single place where state changes, so the prompt can never drift from it.</summary>
     void SetState(PlotState next)
     {
+        // Only on the CHANGE into Ready. SetState is also called on enable to rebuild the
+        // prompt from serialised state, and announcing every plot in the field on load would
+        // greet the player with a chord of chimes.
+        bool ripened = next == PlotState.Ready && _state != PlotState.Ready;
+
         _state = next;
+        if (ripened) AudioManager.PlayAt(readySound, transform.position);
         switch (_state)
         {
             case PlotState.Empty: _prompt = "Plant"; break;
@@ -131,6 +146,11 @@ public class SoilPlot : Interactable, ITimedProgress
             case PlotState.Ready:
                 // The crop pops out at the end of the beat, so the dip reads as its cause.
                 // With no action wired the callback runs immediately, same as before.
+        // Under the animation, not after it. These are the sound of the player DOING
+        // the thing; the callback they used to sit in runs a beat later, which reads
+        // as lag. The payoff sounds - the till, the upgrade flourish - stay on the
+        // callback, because those really do happen at the end.
+                AudioManager.PlayAt(harvestSound, transform.position);
                 interactor.Controller.BeginAction(harvestAction, transform, Harvest);
                 break;
         }
@@ -147,6 +167,11 @@ public class SoilPlot : Interactable, ITimedProgress
 
         _crop = crop;
         _stageShown = -1;
+
+        // At the START of the beat, not on the callback at the end of it. The sound IS the
+        // player working the soil, so it has to run under the animation rather than announce
+        // that the animation finished - BeginGrowing fires a beat later, which read as lag.
+        AudioManager.PlayAt(plantSound, transform.position);
 
         // The crop only goes in when the beat ends, so the growth clock and the ring above
         // the plot both start with the animation rather than with the button press.

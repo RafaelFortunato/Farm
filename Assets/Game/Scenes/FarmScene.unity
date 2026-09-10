@@ -9288,7 +9288,12 @@ MonoBehaviour:
   silenceDistance: 90
   worldSpatialBlend: 0.75
   ambienceLoop: {fileID: 0}
-  logPlays: 0
+  uiClick: {fileID: 11400000, guid: 672fd262b2f2d1b49b713fa822543979, type: 2}
+  uiOpen: {fileID: 11400000, guid: 7b583d09ad889d74ea74bd84196f6cc8, type: 2}
+  uiClose: {fileID: 11400000, guid: e7e24907f6347dd4caaed9dd9a27633a, type: 2}
+  uiDenied: {fileID: 11400000, guid: c97a8b858a85228438031f237c65039e, type: 2}
+  pickup: {fileID: 11400000, guid: 7a2c8e23d2ff7f440afba2d8be4d8eed, type: 2}
+  logPlays: 1
 --- !u!4 &281997137
 Transform:
   m_ObjectHideFlags: 0
@@ -44044,6 +44049,8 @@ MonoBehaviour:
   mushroomPatch: {fileID: 21241191}
   upgradeAction: {fileID: 11400000, guid: 1955b7d0e1f6ce94f90c45fe813963b9, type: 2}
   _level: 1
+  upgradeSound: {fileID: 11400000, guid: 83824bf6146c8ab4a8f38bea3b2d1ad1, type: 2}
+  winSound: {fileID: 11400000, guid: 7001d4ad2d3c0d148b72ba9a2c6a1117, type: 2}
 --- !u!1001 &1416769337
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48992,6 +48999,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07b94bca67f664540bc0bdb301992551, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TruckQueue
+  arriveSound: {fileID: 11400000, guid: 6e07c6f021844f648a333fee4acf1ac4, type: 2}
+  departSound: {fileID: 11400000, guid: 702c688a78082524a827d6b2d839730c, type: 2}
   truckPrefab: {fileID: 3379519745299132799, guid: a1552a3569c8ca145b79d007c4f12985, type: 3}
   truckVariants:
   - {fileID: 3379519745299132799, guid: a1552a3569c8ca145b79d007c4f12985, type: 3}
@@ -64147,6 +64156,7 @@ MonoBehaviour:
   focusAnchor: {fileID: 661880662}
   queue: {fileID: 1582858176}
   sellAction: {fileID: 11400000, guid: 6194b51c81642d74780dcc999e402e82, type: 2}
+  sellSound: {fileID: 11400000, guid: e1e9fc19040c35c4d93bd884c7af1f80, type: 2}
 --- !u!1001 &2014881957
 PrefabInstance:
   m_ObjectHideFlags: 0

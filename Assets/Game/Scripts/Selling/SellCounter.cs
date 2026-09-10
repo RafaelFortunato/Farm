@@ -11,6 +11,9 @@ public class SellCounter : Interactable
     [Tooltip("Beat the player performs when handing produce over. Optional.")]
     public CharacterAction sellAction;
 
+    [Tooltip("Cash register, played once the sale actually goes through. Optional.")]
+    [SerializeField] SoundEvent sellSound;
+
     public override string Prompt => _prompt;
 
     // Rebuilt only when the order or the player's stock changes, so the prompt never
@@ -69,6 +72,12 @@ public class SellCounter : Interactable
     {
         Inventory.AddCoins(_pendingReward);
         RunStats.RecordTruckOrder();
+
+        // Here rather than in Interact, so the register rings when the coins land at the end
+        // of the hand-over beat - not when the button was pressed a second earlier. Positional,
+        // because the counter is a place the player walks to and the sound should belong to it.
+        AudioManager.PlayAt(sellSound, transform.position);
+
         queue.Advance();
     }
 }

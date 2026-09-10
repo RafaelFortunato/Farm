@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 /// <summary>
@@ -136,9 +136,17 @@ public class MainBuilding : Interactable
         return "Upgrade";
     }
 
+    [Header("Sound")]
+    [Tooltip("Flourish as the farmhouse grows.")]
+    [SerializeField] SoundEvent upgradeSound;
+    [Tooltip("Victory sting on the final upgrade.")]
+    [SerializeField] SoundEvent winSound;
+
     public override void Interact(PlayerInteractor interactor)
     {
-        if (!CanAfford()) return;
+        // The prompt already says what is missing; this is the audible half of that answer,
+        // so a player who walks up and presses the button is never met with nothing at all.
+        if (!CanAfford()) { AudioManager.PlayDenied(); return; }
 
         // cached delegate rather than a lambda, the way the sell counter does it
         _onUpgraded ??= Upgraded;
@@ -163,6 +171,11 @@ public class MainBuilding : Interactable
         Refresh();
         Changed?.Invoke(_level);
 
+        // The farmhouse flourish plays on every upgrade INCLUDING the last one, where the
+        // victory sting lands on top of it - the building really did just get built, and
+        // swallowing that to make room for the fanfare loses the payoff of the final tap.
+        AudioManager.PlayAt(upgradeSound, transform.position);
+
         if (IsMaxLevel) Win();
     }
 
@@ -181,6 +194,8 @@ public class MainBuilding : Interactable
 
     void Win()
     {
+        AudioManager.PlayUI(winSound);   // flat: the run is over, it is not coming from a place
+
         var panel = UIManager.Win;
         if (panel == null) return;
 

@@ -2362,6 +2362,7 @@ MonoBehaviour:
   bobHeight: 0.03
   bobSpeed: 1.2
   sway: 5
+  collectSound: {fileID: 11400000, guid: ce1ee247df9bb5347b68d122c2e513cf, type: 2}
   _stored: 0
   _nextAt: 0
 --- !u!1 &7002061423741456637

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
@@ -62,6 +62,7 @@ public class SeedMenu : MonoBehaviour
 
     public void Open(SoilPlot plot, PlayerInteractor interactor = null)
     {
+        AudioManager.PlayOpen();
         _target = plot;
         _interactor = interactor;
 
@@ -87,6 +88,7 @@ public class SeedMenu : MonoBehaviour
 
     public void Close()
     {
+        AudioManager.PlayClose();
         _target = null;
         _interactor = null;
         IsOpen = false;

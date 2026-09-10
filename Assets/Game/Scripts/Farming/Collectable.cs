@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// A harvested item that pops out of whatever produced it, then flies to the player.
@@ -76,6 +76,11 @@ public class Collectable : MonoBehaviour
     void Collect()
     {
         Inventory.AddProduce(item, amount);
+
+        // Shared rather than a field here: one harvest spawns a flier per item, and every crop
+        // prefab in the game carries this component. A per-prefab reference would be the same
+        // asset a dozen times over, with a dozen chances to leave one empty.
+        AudioManager.PlayPickup(_tf != null ? _tf.position : transform.position);
 
         // guarded the way SoilPlot and TruckOrder do it, so editor tooling can drive a pickup
         // without Unity refusing the destroy and the item collecting itself every frame

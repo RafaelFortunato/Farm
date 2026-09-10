@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 /// <summary>
@@ -103,6 +103,9 @@ public class Mushroom : Interactable
         _nextSparkle = Time.time + RollSparkle();
     }
 
+    [Tooltip("Soft pluck as the mushroom comes up. Optional.")]
+    [SerializeField] SoundEvent pickSound;
+
     public override void Interact(PlayerInteractor interactor)
     {
         if (_picked) return;
@@ -111,6 +114,7 @@ public class Mushroom : Interactable
         // cached delegate rather than a lambda, the way the sell counter and the plots do it -
         // this fires on every mushroom for the whole session
         _pickComplete ??= Picked;
+        AudioManager.PlayAt(pickSound, transform.position);
         interactor.Controller.BeginAction(pickAction, transform, _pickComplete);
     }
 

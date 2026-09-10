@@ -55,6 +55,7 @@ MonoBehaviour:
   sparkle: {fileID: 3335148325104707400}
   sparkleMinSeconds: 0.9
   sparkleMaxSeconds: 1.8
+  pickSound: {fileID: 11400000, guid: 37eb07e9e18d5cc47ae416def26d5da4, type: 2}
 --- !u!1 &3515381970250594880
 GameObject:
   m_ObjectHideFlags: 0

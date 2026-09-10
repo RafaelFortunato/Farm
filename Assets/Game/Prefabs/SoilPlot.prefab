@@ -52,6 +52,9 @@ MonoBehaviour:
   cropAnchor: {fileID: 5924350286498944799}
   plantAction: {fileID: 11400000, guid: c6e6d0f6c81df894c9db59e477e177ee, type: 2}
   harvestAction: {fileID: 11400000, guid: 6194b51c81642d74780dcc999e402e82, type: 2}
+  plantSound: {fileID: 11400000, guid: 9a892962dcd3bf54aacf485fef8bafed, type: 2}
+  harvestSound: {fileID: 11400000, guid: 3889538d3e333ec449522e935bb36a3d, type: 2}
+  readySound: {fileID: 11400000, guid: 1477314a78079d94aaebfba2db1ffaf6, type: 2}
   _state: 0
   _crop: {fileID: 0}
   _plantedAt: 0

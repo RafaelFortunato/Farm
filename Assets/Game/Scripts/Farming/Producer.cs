@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -47,6 +47,9 @@ public class Producer : Interactable
     public float sway = 9f;
 
     [Header("Runtime (read-only)")]
+    [Tooltip("Gathering the produce - fruit off a branch, egg from a nest. Optional.")]
+    [SerializeField] SoundEvent collectSound;
+
     [SerializeField] int _stored;
     [SerializeField] float _nextAt;
 
@@ -173,6 +176,7 @@ public class Producer : Interactable
 
         // The produce pops out at the end of the beat, so the animation reads as its cause.
         // With no action wired the callback runs immediately, same as a plot's harvest.
+        AudioManager.PlayAt(collectSound, _tf.position);
         interactor.Controller.BeginAction(CollectAction, transform, Collect);
     }
 

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -83,6 +83,8 @@ public class RecipeMenu : MonoBehaviour
     {
         if (stove == null) return;
 
+        AudioManager.PlayOpen();
+
         _stove = stove;
         _menu = ByTier(stove.recipes);
         _interactor = interactor;
@@ -112,6 +114,7 @@ public class RecipeMenu : MonoBehaviour
 
     public void Close()
     {
+        AudioManager.PlayClose();
         _stove = null;
         _interactor = null;
         IsOpen = false;
@@ -156,7 +159,7 @@ public class RecipeMenu : MonoBehaviour
         if (_stove == null) return;
 
         // Failure just refreshes: the row greys out and the player can see why.
-        if (!_stove.TryStartCooking(recipe)) { Refresh(); return; }
+        if (!_stove.TryStartCooking(recipe)) { AudioManager.PlayDenied(); Refresh(); return; }
 
         // The stove is busy now, so there is nothing left to choose.
         Close();
