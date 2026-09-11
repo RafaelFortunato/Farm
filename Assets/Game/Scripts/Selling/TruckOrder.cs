@@ -15,6 +15,12 @@ using UnityEngine;
 /// </summary>
 public class TruckOrder : MonoBehaviour, ITimedProgress
 {
+    [Header("Driver")]
+    [Tooltip("The cat in the seat. Its animator is told whether the truck is moving, so it " +
+             "drives on the way in and out and sits while parked at the counter. Optional - a " +
+             "truck with no driver wired just has nothing to tell.")]
+    public Animator driver;
+
     [Header("Badge")]
     [Tooltip("Root of the floating order badge, billboarded to the camera.")]
     public Transform badge;
@@ -84,6 +90,10 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
         _payoff = payoff;
         _waiting = false;
 
+        // A pooled truck is re-rented for a fresh order; without this it would come back still
+        // playing whatever state the last trip left it in.
+        SetDriverMoving(false);
+
         if (countLabel != null) countLabel.text = "x" + amount;
 
         if (icon != null)
@@ -104,7 +114,27 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
             _moving = false;
         }
         else _moving = true;
+
+        SetDriverMoving(_moving);
     }
+
+    /// <summary>
+    /// Tells the cat whether it is driving or parked.
+    ///
+    /// Called at the two moments the answer changes - setting off, and arriving - rather than
+    /// every frame from Update. The animator only cares about the edges, and a truck spends
+    /// almost all of its visit stationary, so a per-frame write would be the same value
+    /// thousands of times over for the sake of two transitions.
+    ///
+    /// The parameter is set by hash and guarded on the animator existing, so a truck body with
+    /// no driver wired is simply quiet rather than throwing.
+    /// </summary>
+    void SetDriverMoving(bool moving)
+    {
+        if (driver != null) driver.SetBool(DrivingHash, moving);
+    }
+
+    static readonly int DrivingHash = Animator.StringToHash("Driving");
 
     public void ShowBadge(bool visible)
     {
@@ -132,7 +162,12 @@ public class TruckOrder : MonoBehaviour, ITimedProgress
         if (_moving)
         {
             _tf.position = Vector3.MoveTowards(_tf.position, _target, _speed * dt);
-            if ((_tf.position - _target).sqrMagnitude < 0.0004f) { _tf.position = _target; _moving = false; }
+            if ((_tf.position - _target).sqrMagnitude < 0.0004f)
+            {
+                _tf.position = _target;
+                _moving = false;
+                SetDriverMoving(false);      // arrived; the cat settles back into the seat
+            }
         }
 
         if (badge != null && badge.gameObject.activeSelf)
