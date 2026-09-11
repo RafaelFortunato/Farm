@@ -32,24 +32,30 @@ public class AudioManager : Singleton<AudioManager>
     [SerializeField, Range(0f, 1f)] float ambienceVolume = 0.3f;
 
     [Header("World space")]
-    // The listener rides the camera, which follows the player at a fixed 28 units
-    // (CameraFollow.distance), so ANY sound the player is standing next to is already
-    // 28 units from the listener. Unity's default logarithmic rolloff is full volume
-    // at 1 unit and inverse-square after, which would make even the plot underfoot
-    // near-silent. The linear window below is sized to the farm instead: full volume
-    // out to just past the camera's own distance, fading to nothing well beyond the
-    // far side of the island.
-    [Tooltip("Distance at which a world sound is still at full volume. Should sit just " +
-             "outside the camera's follow distance, or sounds at the player's feet are " +
-             "already attenuated.")]
-    [SerializeField] float fullVolumeDistance = 30f;
-    [Tooltip("Distance at which a world sound reaches silence. Must clear the camera's " +
-             "distance to the far corner of the fully expanded island, or that corner " +
-             "goes mute.")]
-    [SerializeField] float silenceDistance = 90f;
-    [Tooltip("How positional world sounds are. Fully 3D reads as thin and far away " +
-             "from this camera height; a little 2D keeps them present in the mix while " +
-             "still panning left/right with the action.")]
+    // These are measured from the PLAYER: the AudioListener lives on the Player object, not on
+    // the camera where Unity puts it by default. That matters more than it sounds. The camera
+    // rides a fixed orbit about 21 units from the cat, so with the ear up there Unity never
+    // measured less than 21 even with the player standing on the stove - and these numbers
+    // were 30 and 90 to compensate, which left the whole walkable island inside the flat top
+    // of the curve where nothing ever got quieter. With the ear on the cat the distance Unity
+    // measures is the distance the player would say it is, so the window can be the honest
+    // size of the farm. Individual sounds override both radii; see SoundEvent.
+    //
+    // The listener hangs off the player as a child called Listener. A Rotation Constraint on
+    // that object sources the camera, so it keeps the fixed camera facing instead of spinning
+    // with the cat - panning has to follow the screen, not the character. That is a stock
+    // component with no script behind it, deliberately: it costs no per-frame managed call.
+    [Tooltip("How close counts as being right there. Inside this a world sound plays at full " +
+             "level, so it covers roughly the reach of an interaction - stand at the stove and " +
+             "you hear the stove.")]
+    [SerializeField] float fullVolumeDistance = 6f;
+    [Tooltip("How far away a world sound fades out completely. Short enough that the far side " +
+             "of the island is genuinely quiet, which is the point of positioning a sound at " +
+             "all; long enough to cover what fits on screen at once.")]
+    [SerializeField] float silenceDistance = 40f;
+    [Tooltip("How positional world sounds are. 1 is fully 3D and falls to true silence; below " +
+             "that a fraction of the sound stays flat stereo and never fades, which keeps a " +
+             "distant event present in the mix rather than lost. A sound can override this.")]
     [SerializeField, Range(0f, 1f)] float worldSpatialBlend = 0.75f;
 
     [Header("Ambience")]
@@ -89,6 +95,106 @@ public class AudioManager : Singleton<AudioManager>
     public static void PlayPickup(Vector3 position)
         => PlayAt(Instance != null ? Instance.pickup : null, position);
 
+    // ---- loops ------------------------------------------------------------------
+    //
+    // Loops get their own voices rather than borrowing from the pool. The pool steals its
+    // oldest voice when everything is busy, which is right for one-shots - the thing it
+    // interrupts is nearly finished anyway - but would cut a running loop dead halfway
+    // through a cook. There are only ever a handful of these, so they are made on demand
+    // and kept, keyed by whatever owns them.
+    //
+    // The sound is kept alongside the source, not just the source. A loop outlives the call
+    // that started it, so it is the only voice whose authored distances still need to be
+    // known minutes later - when the asset is edited mid-cook, or when the manager's own
+    // defaults are dragged in the inspector.
+    class LoopVoice
+    {
+        public AudioSource Source;
+        public SoundEvent Sound;
+    }
+
+    readonly Dictionary<Transform, LoopVoice> _loops = new Dictionary<Transform, LoopVoice>();
+
+    /// <summary>
+    /// Start a sound looping at <paramref name="owner"/>, or do nothing if that owner is
+    /// already looping this one. Silent with no manager in the scene, like everything here.
+    ///
+    /// The owner is the key as well as the position, so a caller never has to hold a handle
+    /// and cannot leak one - it starts and stops with the same reference it already has.
+    /// </summary>
+    public static void StartLoop(SoundEvent sound, Transform owner)
+    {
+        if (Instance == null || sound == null || owner == null || !sound.HasClips) return;
+        Instance.BeginLoop(sound, owner);
+    }
+
+    /// <summary>Stop whatever <paramref name="owner"/> had looping. Safe to call twice.</summary>
+    public static void StopLoop(Transform owner)
+    {
+        if (Instance == null || owner == null) return;
+        Instance.EndLoop(owner);
+    }
+
+    void BeginLoop(SoundEvent sound, Transform owner)
+    {
+        var clip = sound.PickClip();
+        if (clip == null) return;
+
+        if (_loops.TryGetValue(owner, out var entry) && entry.Source != null)
+        {
+            if (entry.Source.clip == clip && entry.Source.isPlaying) return;   // already running
+            entry.Source.Stop();
+        }
+        else
+        {
+            var go = new GameObject("Loop");
+            go.transform.SetParent(transform, false);
+            var created = go.AddComponent<AudioSource>();
+            created.playOnAwake = false;
+            entry = new LoopVoice { Source = created };
+            _loops[owner] = entry;
+        }
+
+        entry.Sound = sound;
+
+        var voice = entry.Source;
+        voice.name = "Loop " + sound.name;
+        voice.transform.position = owner.position;
+        voice.clip = clip;
+        voice.loop = true;
+        voice.volume = sound.Volume * sfxVolume * masterVolume;
+        voice.pitch = sound.RandomPitch;
+        ApplyRolloff(voice, sound);
+
+        float authored = sound.SpatialBlendOverride;
+        voice.spatialBlend = authored >= 0f ? authored : worldSpatialBlend;
+        voice.Play();
+
+        if (logPlays) Debug.Log($"[SFX] {sound.name} looping at {owner.name}");
+    }
+
+    void EndLoop(Transform owner)
+    {
+        if (!_loops.TryGetValue(owner, out var entry)) return;
+
+        if (entry.Source != null) { entry.Source.Stop(); entry.Source.clip = null; }
+        _loops.Remove(owner);
+    }
+
+    /// <summary>
+    /// Re-reads a sound's distances onto any loop currently playing it. Called by SoundEvent
+    /// when its fields are edited, so tuning the stove's reach is audible while the stove is
+    /// running rather than on the next cook. Null-safe and silent with no manager in the scene.
+    /// </summary>
+    public static void RefreshRolloff(SoundEvent sound)
+    {
+        if (Instance == null || sound == null) return;
+
+        foreach (var entry in Instance._loops.Values)
+            if (entry.Source != null && entry.Sound == sound)
+                Instance.ApplyRolloff(entry.Source, sound);
+    }
+
     [Header("Debug")]
     [Tooltip("Log every sound that actually plays. Rate-limited requests are not " +
              "logged, so the console shows what was heard rather than what was asked " +
@@ -105,6 +211,7 @@ public class AudioManager : Singleton<AudioManager>
     AudioSource[] _voices;
     float[] _voiceStartedAt;
     AudioSource _ambienceSource;
+
 
     /// <summary>
     /// Last time each event was allowed through, for the per-event rate limit. Kept
@@ -187,6 +294,59 @@ public class AudioManager : Singleton<AudioManager>
     }
 
     /// <summary>
+    /// How every world voice fades with distance. One method rather than the same four lines at
+    /// each place a source is made, so the pool and the loop voices cannot drift apart - they
+    /// did, and a distance change that only reached half the sources is not a thing you can hear
+    /// your way to.
+    ///
+    /// Linear rather than Unity's default logarithmic. Logarithmic is inverse-square from one
+    /// unit out, which is how sound behaves outdoors and completely wrong for a farm you look
+    /// down on: the near field would collapse to nothing within a few steps. Linear spends the
+    /// whole window on the distances the player actually walks.
+    /// </summary>
+    void ApplyRolloff(AudioSource source, SoundEvent sound)
+    {
+        source.rolloffMode = AudioRolloffMode.Linear;
+
+        // The sound gets the last word, the manager supplies the default. Each radius is
+        // decided on its own, so a sound can shorten only its tail and leave the near field
+        // alone - which is the common case, and the one the stove wants.
+        float near = fullVolumeDistance;
+        float far = silenceDistance;
+        if (sound != null)
+        {
+            if (sound.FullVolumeDistanceOverride >= 0f) near = sound.FullVolumeDistanceOverride;
+            if (sound.SilenceDistanceOverride >= 0f) far = sound.SilenceDistanceOverride;
+        }
+
+        source.minDistance = near;
+        // Guarded: min >= max makes Unity clamp silently and the sound simply stops fading,
+        // which looks exactly like the bug this replaced.
+        source.maxDistance = Mathf.Max(far, near + 0.1f);
+    }
+
+    /// <summary>
+    /// Pushes an edited distance onto voices that already exist.
+    ///
+    /// Without this the fields are only read when a source is created, so dragging them in play
+    /// mode does nothing to the pool and nothing to a loop that is already running - and a cook
+    /// loop is the one sound you would most want to tune while listening to it.
+    /// </summary>
+    void OnValidate()
+    {
+        // Pool voices are configured per play, so this only matters for whatever is sounding
+        // right now; they pick the new defaults up on their own from the next play onward.
+        if (_voices != null)
+            foreach (var v in _voices)
+                if (v != null) ApplyRolloff(v, null);
+
+        // Loops know their own sound, so a default change lands correctly even on a loop that
+        // overrides one of the two radii.
+        foreach (var entry in _loops.Values)
+            if (entry.Source != null) ApplyRolloff(entry.Source, entry.Sound);
+    }
+
+    /// <summary>
     /// Creates the fixed pool of AudioSources every sound plays through, configured
     /// for the farm-sized linear rolloff described on the fields above.
     /// </summary>
@@ -209,10 +369,7 @@ public class AudioManager : Singleton<AudioManager>
             var source = go.AddComponent<AudioSource>();
             source.playOnAwake = false;
             source.loop = false;
-            // Linear rather than the default logarithmic: see the field comments above.
-            source.rolloffMode = AudioRolloffMode.Linear;
-            source.minDistance = fullVolumeDistance;
-            source.maxDistance = silenceDistance;
+            ApplyRolloff(source, null);
 
             _voices[i] = source;
             _voiceStartedAt[i] = float.NegativeInfinity;
@@ -273,6 +430,10 @@ public class AudioManager : Singleton<AudioManager>
         voice.clip = clip;
         voice.volume = sound.Volume * sfxVolume * masterVolume;
         voice.pitch = sound.RandomPitch;
+
+        // Per play, not once at build: voices are pooled, so this one is still carrying the
+        // distances of whatever sound used it last.
+        ApplyRolloff(voice, sound);
 
         float authored = sound.SpatialBlendOverride;
         voice.spatialBlend = !positional ? 0f

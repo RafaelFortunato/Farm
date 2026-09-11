@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a420fcf8025093b4a84ff547dd021caa, type: 3}
-  m_Name: SFX_Pickup
+  m_Name: SFX_CookLoop
   m_EditorClassIdentifier: Assembly-CSharp::SoundEvent
   clips:
-  - {fileID: 8300000, guid: 1684a8d8a96ad4c4a9f8532000ed0138, type: 3}
-  volume: 0.3
-  pitchRange: {x: 1.05, y: 1.1}
-  minRetriggerInterval: 0.4
+  - {fileID: 8300000, guid: 0dd42cf1719d45a4fb562a61880424b9, type: 3}
+  volume: 0.16
+  pitchRange: {x: 1, y: 1}
+  minRetriggerInterval: 0
   startDelay: 0
-  spatialBlend: -1
-  fullVolumeDistance: -1
-  silenceDistance: -1
+  spatialBlend: 1
+  fullVolumeDistance: 4
+  silenceDistance: 16

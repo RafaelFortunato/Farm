@@ -9284,8 +9284,8 @@ MonoBehaviour:
   masterVolume: 1
   sfxVolume: 1
   ambienceVolume: 0.3
-  fullVolumeDistance: 30
-  silenceDistance: 90
+  fullVolumeDistance: 6
+  silenceDistance: 40
   worldSpatialBlend: 0.75
   ambienceLoop: {fileID: 0}
   uiClick: {fileID: 11400000, guid: 672fd262b2f2d1b49b713fa822543979, type: 2}
@@ -11124,7 +11124,6 @@ GameObject:
   m_Component:
   - component: {fileID: 330585546}
   - component: {fileID: 330585545}
-  - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
   m_Layer: 0
@@ -11134,14 +11133,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &330585544
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
 --- !u!20 &330585545
 Camera:
   m_ObjectHideFlags: 0
@@ -48910,6 +48901,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1357290732}
+  - {fileID: 1981590789}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1580073755
@@ -49002,6 +48994,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TruckQueue
   arriveSound: {fileID: 11400000, guid: 6e07c6f021844f648a333fee4acf1ac4, type: 2}
   departSound: {fileID: 11400000, guid: 702c688a78082524a827d6b2d839730c, type: 2}
+  hornSound: {fileID: 11400000, guid: 92743a72212262746973ffec47ab0cc7, type: 2}
   truckPrefab: {fileID: 3379519745299132799, guid: a1552a3569c8ca145b79d007c4f12985, type: 3}
   truckVariants:
   - {fileID: 3379519745299132799, guid: a1552a3569c8ca145b79d007c4f12985, type: 3}
@@ -62572,6 +62565,67 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1781680475063329005, guid: 2e1ecf6b062fbd248a32028e6ef85fcd, type: 3}
   m_PrefabInstance: {fileID: 1976914466}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1981590788
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1981590789}
+  - component: {fileID: 1981590790}
+  - component: {fileID: 1981590791}
+  m_Layer: 0
+  m_Name: Listener
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1981590789
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981590788}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.000000039568366, y: 0.9063078, z: -0.42261818, w: 0.000000084854655}
+  m_LocalPosition: {x: 0, y: 1.2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1580073754}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!81 &1981590790
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981590788}
+  m_Enabled: 1
+--- !u!1818360609 &1981590791
+RotationConstraint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1981590788}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Weight: 1
+  m_RotationAtRest: {x: 50.00001, y: 0, z: 0}
+  m_RotationOffset: {x: 0, y: 0, z: 0}
+  m_AffectRotationX: 1
+  m_AffectRotationY: 1
+  m_AffectRotationZ: 1
+  m_Active: 1
+  m_IsLocked: 1
+  m_Sources:
+  - sourceTransform: {fileID: 330585546}
+    weight: 1
 --- !u!1001 &1984172984
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -34,6 +34,10 @@ public class Stove : Interactable, ITimedProgress
     [Header("Sound")]
     [Tooltip("The moment a cook begins.")]
     [SerializeField] SoundEvent cookStartSound;
+    [Tooltip("Quiet simmer that runs for as long as the stove is busy. Loops, so the clip " +
+             "should be seamless; kept low because it is the only sound here that is " +
+             "continuous rather than an event.")]
+    [SerializeField] SoundEvent cookLoopSound;
     [Tooltip("Kitchen bell when the dish finishes, matching the badge that appears with it.")]
     [SerializeField] SoundEvent readySound;
     [Tooltip("Taking the finished dish off the stove.")]
@@ -90,9 +94,16 @@ public class Stove : Interactable, ITimedProgress
         // Only on the CHANGE into Ready, and only in play: SetState also runs on enable to
         // rebuild the prompt from serialised state, which must stay silent.
         bool justFinished = next == StoveState.Ready && _state != StoveState.Ready;
+        bool wasCooking = _state == StoveState.Cooking;
 
         _state = next;
         if (justFinished) AudioManager.PlayAt(readySound, transform.position);
+
+        // The simmer is tied to the STATE rather than to the start and finish calls, so a
+        // stove that comes back mid-cook from serialised state hums the way it should, and
+        // every way out of Cooking - finishing, or being switched off - silences it.
+        if (_state == StoveState.Cooking) AudioManager.StartLoop(cookLoopSound, transform);
+        else if (wasCooking) AudioManager.StopLoop(transform);
         RefreshBadge();
         switch (_state)
         {
@@ -126,6 +137,10 @@ public class Stove : Interactable, ITimedProgress
         _announced = waiting;
         if (readyBadge != null) readyBadge.Show(waiting);
     }
+
+    // A stove switched off with its level group would otherwise leave the simmer running
+    // with nothing visibly making it.
+    void OnDisable() => AudioManager.StopLoop(transform);
 
     public override void Interact(PlayerInteractor interactor)
     {

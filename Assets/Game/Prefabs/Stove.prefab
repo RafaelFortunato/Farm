@@ -120,6 +120,7 @@ MonoBehaviour:
   collectAction: {fileID: 11400000, guid: 6194b51c81642d74780dcc999e402e82, type: 2}
   readyBadge: {fileID: 6178677442921835632}
   cookStartSound: {fileID: 11400000, guid: 2801faa811273b14c86efd6fe2cd37a6, type: 2}
+  cookLoopSound: {fileID: 11400000, guid: 7457ea0fe03abef4f874bafdf2c5a976, type: 2}
   readySound: {fileID: 11400000, guid: ba8540956218b2e41a59baba12ea822a, type: 2}
   collectSound: {fileID: 11400000, guid: 906e91153286d104c97974ed5d6c03a8, type: 2}
   _state: 0

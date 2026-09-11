@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: FarmhouseLadder
   m_EditorClassIdentifier: Assembly-CSharp::FarmhouseLadder
   steps:
-  - coinCost: 200
+  - coinCost: 20
     alsoNeeds: []
-  - coinCost: 800
+  - coinCost: 80
     alsoNeeds: []
   - coinCost: 3200
     alsoNeeds: []

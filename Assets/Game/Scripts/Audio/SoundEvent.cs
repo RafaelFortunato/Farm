@@ -46,6 +46,23 @@ public class SoundEvent : ScriptableObject
              "default, which is what world sounds normally want.")]
     [SerializeField, Range(-1f, 1f)] float spatialBlend = -1f;
 
+    // How far this particular sound carries. The AudioManager holds a farm-wide default that
+    // suits most things, and most sounds should leave these at -1 and take it. They exist
+    // because reach is a property of the SOURCE, not of the farm: a stove burbling to itself
+    // should be gone within a few paces, while a truck pulling up is meant to be heard from
+    // across the fields. One shared pair of numbers cannot be right for both, and the
+    // alternative - re-typing distances at every call site - is how the two loop and pool
+    // paths drifted apart in the first place.
+    [Tooltip("How close counts as being right there, in world units, measured from the " +
+             "player. Inside this the sound is at full level. Leave negative to take the " +
+             "manager's default.")]
+    [SerializeField] float fullVolumeDistance = -1f;
+
+    [Tooltip("How far away this sound fades out completely, in world units from the player. " +
+             "Lower it to make something local and private; raise it for something the whole " +
+             "farm should notice. Leave negative to take the manager's default.")]
+    [SerializeField] float silenceDistance = -1f;
+
     // Deliberately not serialized: this is play-time bookkeeping, not authored data,
     // and writing it into the asset would dirty it on every play.
     [System.NonSerialized] int _lastClipIndex = -1;
@@ -58,6 +75,12 @@ public class SoundEvent : ScriptableObject
 
     /// <summary>Blend authored on this sound, or a negative value to take the manager's default.</summary>
     public float SpatialBlendOverride => spatialBlend;
+
+    /// <summary>Full-volume radius authored here, or negative to take the manager's default.</summary>
+    public float FullVolumeDistanceOverride => fullVolumeDistance;
+
+    /// <summary>Silence radius authored here, or negative to take the manager's default.</summary>
+    public float SilenceDistanceOverride => silenceDistance;
 
     public bool HasClips => clips != null && clips.Length > 0;
 
@@ -79,5 +102,26 @@ public class SoundEvent : ScriptableObject
 
         _lastClipIndex = index;
         return clips[index];
+    }
+
+    /// <summary>
+    /// Pushes an edited distance onto anything already looping this sound.
+    ///
+    /// Without it these fields would only be read when a voice starts, so tuning the reach of
+    /// the stove while listening to the stove would do nothing until the next cook - which is
+    /// exactly the moment you want to hear the change. One-shots are too short to be worth
+    /// chasing; they pick the new numbers up on their next play regardless.
+    ///
+    /// Editor-only. OnValidate does not run in a build, and AudioManager is null-safe here
+    /// anyway, so this is silent during asset import and in scenes with no audio rig.
+    /// </summary>
+    void OnValidate()
+    {
+        // A silence radius inside the full-volume radius means Unity clamps and the sound
+        // simply stops fading, which looks precisely like the bug this feature fixes.
+        if (fullVolumeDistance >= 0f && silenceDistance >= 0f && silenceDistance <= fullVolumeDistance)
+            silenceDistance = fullVolumeDistance + 1f;
+
+        AudioManager.RefreshRolloff(this);
     }
 }

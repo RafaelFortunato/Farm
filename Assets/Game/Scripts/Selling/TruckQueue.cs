@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -49,6 +50,12 @@ public class TruckQueue : MonoBehaviour
     [Tooltip("A truck pulling away, served or not. Optional.")]
     [SerializeField] SoundEvent departSound;
 
+    [Tooltip("The horn, the moment the truck parks and its clock starts. Separate from " +
+             "arriveSound, which covers the drive in: this one is the driver announcing they " +
+             "are here and waiting, so it marks the start of the window rather than the " +
+             "approach. Optional.")]
+    [SerializeField] SoundEvent hornSound;
+
     [SerializeField] TruckOrder truckPrefab;
     [Tooltip("Extra truck bodies to alternate between, purely for variety. Optional.")]
     [SerializeField] TruckOrder[] truckVariants;
@@ -96,6 +103,12 @@ public class TruckQueue : MonoBehaviour
              "starts when it parks, not when it spawns, so the drive in does not eat the window.")]
     [SerializeField] float patience = 30f;
 
+    [Tooltip("Pause before the very first truck appears, in seconds. The road switches on the " +
+             "instant the farmhouse reaches its level, which is the same beat as the upgrade " +
+             "fanfare - so without this the horn lands on top of it and neither is heard " +
+             "properly. Only the opening truck waits; every one after it is on the normal gap.")]
+    [SerializeField, Min(0f)] float firstArrivalDelay = 2f;
+
     [Header("Movement")]
     [SerializeField] float driveSpeed = 6f;
 
@@ -128,9 +141,27 @@ public class TruckQueue : MonoBehaviour
     void OnEnable()
     {
         // rebuilt here rather than Awake so a domain reload during play restores the line
-        if (_queue.Count == 0) Fill(startingTrucks);
+        if (_queue.Count == 0) StartCoroutine(FillAfterDelay());
         _nextArrival = Time.time + RollGap();
         _marker = UIManager.TruckPointer;
+    }
+
+    /// <summary>
+    /// Puts the opening truck on the road, a beat late.
+    ///
+    /// A coroutine rather than a countdown ticked in Update: this happens once in a run, and a
+    /// comparison every frame forever to catch a single moment two seconds in is work the game
+    /// pays for the whole session. It also stops itself - disabling the road cancels the
+    /// coroutine, so a truck cannot appear on a road that has been switched off again.
+    ///
+    /// The queue is re-checked after the wait, not just before it. Two seconds is long enough
+    /// for the regular arrival clock to have produced a truck on its own in some future tuning,
+    /// and two trucks for one slot would be a worse bug than a missing one.
+    /// </summary>
+    IEnumerator FillAfterDelay()
+    {
+        if (firstArrivalDelay > 0f) yield return new WaitForSeconds(firstArrivalDelay);
+        if (_queue.Count == 0) Fill(startingTrucks);
     }
 
     /// <summary>
@@ -176,7 +207,17 @@ public class TruckQueue : MonoBehaviour
 
         if (!front.Waiting)
         {
-            if (front.Arrived) front.BeginWait(patience);
+            if (front.Arrived)
+            {
+                front.BeginWait(patience);
+
+                // Paired with BeginWait deliberately, not with Arrived. Arrived turns true the
+                // frame the truck reaches its slot and stays true for the rest of its visit, so
+                // sounding the horn on it would mean re-sounding it every frame. This branch
+                // runs exactly once per truck - the next frame it is Waiting and takes the other
+                // path - which makes one horn per arrival structural rather than remembered.
+                AudioManager.PlayAt(hornSound, front.transform.position);
+            }
             return;
         }
 
