@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Anything that fills up with produce on a timer and hands over the whole store when the
@@ -12,7 +13,9 @@ using UnityEngine;
 /// elapsed real time and catches up in one go, so a throttled browser tab loses nothing.
 ///
 /// The badge is authored into the prefab - a producer always makes the same thing, so there is
-/// nothing to swap at runtime, only a count to write and a visibility to toggle. The idle sway
+/// only a count to write, an icon to point at the right sprite, and a visibility to toggle. The
+/// icon is a sprite rather than the produce's own 3D model, matching the truck badge and every
+/// other place an item is pictured. The idle sway
 /// lives here rather than in an Animator because these are primitive kitbashes with no rig,
 /// and a little motion is what makes a hen read as a hen instead of as furniture. A
 /// tree wants only the faintest sway, or none.
@@ -33,10 +36,14 @@ public class Producer : Interactable
     [Header("Badge")]
     [Tooltip("Root of the floating badge, shown only while there is something to collect.")]
     public Transform badge;
-    [Tooltip("Holds the produce model inside the badge. Spun so it catches the eye.")]
-    public Transform modelAnchor;
+
+    [Tooltip("Shows what is waiting to be collected, as the item's own icon. A sprite rather " +
+             "than the produce's 3D model: the badge is a flat UI card seen head-on, so a lit " +
+             "mesh sitting in it reads as an object that has fallen into the interface. It also " +
+             "matches every other place the item is pictured - the crate, the shop, the truck.")]
+    public Image icon;
+
     public TextMeshProUGUI countLabel;
-    public float spinSpeed = 45f;
 
     [Header("Idle")]
     [Tooltip("Body that bobs and sways. Defaults to a child named Body.")]
@@ -130,6 +137,17 @@ public class Producer : Interactable
             : string.Empty;
 
         if (countLabel != null) countLabel.text = "x" + _stored;
+
+        // Set here rather than once at startup because the definition is wired on the scene
+        // instance, not the prefab - so there is nothing to read from until something asks.
+        // An item with no icon hides the Image instead of drawing a white box.
+        if (icon != null)
+        {
+            var sprite = Produces != null ? Produces.icon : null;
+            if (icon.sprite != sprite) icon.sprite = sprite;
+            icon.enabled = sprite != null;
+        }
+
         bool ready = _stored > 0;
         if (badge != null && badge.gameObject.activeSelf != ready) badge.gameObject.SetActive(ready);
     }
@@ -163,11 +181,10 @@ public class Producer : Interactable
             visual.localRotation = _visualRestRot * Quaternion.Euler(0f, Mathf.Sin(_phase * 0.5f) * sway, 0f);
         }
 
-        if (badge != null && badge.gameObject.activeSelf)
-        {
-            if (_cam != null) badge.rotation = _cam.rotation;
-            if (modelAnchor != null) modelAnchor.Rotate(0f, spinSpeed * dt, 0f, Space.World);
-        }
+        // Still billboarded, but no longer spun: the spin existed to give a dull grey mesh
+        // some life, and an icon does not need it.
+        if (badge != null && badge.gameObject.activeSelf && _cam != null)
+            badge.rotation = _cam.rotation;
     }
 
     public override void Interact(PlayerInteractor interactor)

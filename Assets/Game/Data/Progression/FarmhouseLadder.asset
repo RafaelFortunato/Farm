@@ -17,7 +17,7 @@ MonoBehaviour:
     alsoNeeds: []
   - coinCost: 80
     alsoNeeds: []
-  - coinCost: 3200
+  - coinCost: 320
     alsoNeeds: []
   - coinCost: 15000
     alsoNeeds: []
