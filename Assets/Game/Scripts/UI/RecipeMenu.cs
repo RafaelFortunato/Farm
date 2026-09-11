@@ -10,36 +10,15 @@ using UnityEngine.UI;
 /// costs - a recipe is paid for in produce rather than coins - and that picking one closes
 /// the menu, because the stove is busy the moment a cook starts.
 /// </summary>
-public class RecipeMenu : MonoBehaviour
+public class RecipeMenu : BaseMenu
 {
-    /// <summary>True while the menu is up, so gameplay input can ignore Interact.</summary>
-    public static bool IsOpen { get; private set; }
-
     [Header("Prefab wiring")]
-    [SerializeField] GameObject panelRoot;
     [SerializeField] Transform rowContainer;
     [SerializeField] RecipeRow rowPrefab;
-    [SerializeField] Button closeButton;
-
-    [Header("Camera")]
-    [Tooltip("How far the camera pushes in while the menu is open, in world units.")]
-    public float cameraZoom = 5f;
-    [Tooltip("Extra tilt while the menu is open, in degrees. Negative drops the camera lower.")]
-    public float cameraPitch = -8f;
-    [Tooltip("Seconds to ease the camera in, and back out on close.")]
-    public float cameraBlend = 0.35f;
-
-    CameraFollow _cameraRig;
 
     readonly List<RecipeRow> _rows = new List<RecipeRow>();
     RecipeDef[] _menu;
     Stove _stove;
-    PlayerInteractor _interactor;
-
-    void OnDestroy()
-    {
-        IsOpen = false;
-    }
 
     /// <summary>
     /// The stove's list, ordered by the level that unlocks it.
@@ -83,46 +62,19 @@ public class RecipeMenu : MonoBehaviour
     {
         if (stove == null) return;
 
-        AudioManager.PlayOpen();
-
         _stove = stove;
         _menu = ByTier(stove.recipes);
-        _interactor = interactor;
+        Present(interactor);
 
-        gameObject.SetActive(true);              // this object is the toggle
-        if (panelRoot != null) panelRoot.SetActive(true);
-
-        // same push-in the shop uses, so the two menus feel like one thing. Resolved here
-        // rather than in OnEnable: this object starts disabled.
-        if (_cameraRig == null) _cameraRig = GameManager.CameraRig;
-        _cameraRig.SetActionFraming(cameraZoom, cameraPitch, cameraBlend);
-
-        if (closeButton != null)
-        {
-            closeButton.onClick.RemoveAllListeners();
-            closeButton.onClick.AddListener(Close);
-        }
         BuildRows();
-
-        IsOpen = true;
         Refresh();
 
         // rows were just spawned into a panel enabled this frame - settle it now
-        Menus.RebuildLayout(rowContainer as RectTransform,
+        UIManager.RebuildLayout(rowContainer as RectTransform,
                             rowContainer != null ? rowContainer.parent as RectTransform : null);
     }
 
-    public void Close()
-    {
-        AudioManager.PlayClose();
-        _stove = null;
-        _interactor = null;
-        IsOpen = false;
-
-        if (_cameraRig != null) _cameraRig.ClearActionFraming();
-
-        gameObject.SetActive(false);
-    }
+    protected override void OnDismissed() => _stove = null;
 
     /// <summary>
     /// One row per recipe the stove knows. Cleared first so this is safe to call again -
@@ -162,6 +114,6 @@ public class RecipeMenu : MonoBehaviour
         if (!_stove.TryStartCooking(recipe)) { AudioManager.PlayDenied(); Refresh(); return; }
 
         // The stove is busy now, so there is nothing left to choose.
-        Close();
+        Close(false);          // they picked a recipe; the stove lighting speaks for it
     }
 }

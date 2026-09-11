@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Top-down character movement for the farm cat.
@@ -157,7 +157,7 @@ public class PlayerController : MonoBehaviour
 
         // A menu owns input while it is up. Stop dead rather than letting the cat wander off
         // behind the panel - the same gate PlayerInteractor uses to refuse the Interact button.
-        if (Menus.AnyOpen)
+        if (UIManager.AnyMenuOpen)
         {
             _velocity = Vector3.zero;
             CurrentSpeed = 0f;

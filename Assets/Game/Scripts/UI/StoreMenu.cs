@@ -12,16 +12,11 @@ using UnityEngine.UI;
 /// The panel is authored as a prefab under Prefabs/UI and lives beneath MainCanvas.
 /// This script only shows/hides it and fills in data - all styling is in the prefab.
 /// </summary>
-public class StoreMenu : MonoBehaviour
+public class StoreMenu : BaseMenu
 {
-    /// <summary>True while the panel is up, so gameplay input can ignore Interact.</summary>
-    public static bool IsOpen { get; private set; }
-
     [Header("Prefab wiring")]
-    [SerializeField] GameObject panelRoot;
     [SerializeField] Transform rowContainer;
     [SerializeField] SellRow sellRowPrefab;
-    [SerializeField] Button closeButton;
 
     [Tooltip("Shown centred in the panel instead of any rows, when there is currently nothing " +
              "to sell.")]
@@ -31,16 +26,6 @@ public class StoreMenu : MonoBehaviour
              "per click and a player emptying a crate will click it a lot.")]
     [SerializeField] SoundEvent sellSound;
 
-    [Header("Camera")]
-    [Tooltip("How far the camera pushes in while the panel is open, in world units.")]
-    public float cameraZoom = 5f;
-    [Tooltip("Extra tilt while the panel is open, in degrees. Negative drops the camera lower.")]
-    public float cameraPitch = -8f;
-    [Tooltip("Seconds to ease the camera in, and back out on close.")]
-    public float cameraBlend = 0.35f;
-
-    CameraFollow _cameraRig;
-
     readonly List<SellRow> _rows = new List<SellRow>();
 
     // What the rows were built from. Held separately from the store's own array because that
@@ -49,7 +34,6 @@ public class StoreMenu : MonoBehaviour
     readonly List<ItemDef> _listed = new List<ItemDef>();
 
     Store _store;
-    PlayerInteractor _interactor;
 
     // The panel's own GameObject is the toggle, so these fire exactly on open and close: the
     // subscription is scoped to the panel being visible and costs nothing while it is shut.
@@ -61,56 +45,29 @@ public class StoreMenu : MonoBehaviour
 
     void OnDisable() => Inventory.Changed -= Refresh;
 
-    void OnDestroy()
+    protected override void OnDestroy()
     {
         Inventory.Changed -= Refresh;
-        IsOpen = false;
+        base.OnDestroy();
     }
 
     public void Open(Store store, PlayerInteractor interactor = null)
     {
         if (store == null) return;
 
-        AudioManager.PlayOpen();
-
         _store = store;
-        _interactor = interactor;
+        Present(interactor);
 
-        gameObject.SetActive(true);              // this object is the toggle
-        if (panelRoot != null) panelRoot.SetActive(true);
-
-        // same push-in the planting beat uses, so talking to the shopkeeper gets the
-        // same emphasis. Resolved here rather than in OnEnable: this object starts disabled.
-        if (_cameraRig == null) _cameraRig = GameManager.CameraRig;
-        _cameraRig.SetActionFraming(cameraZoom, cameraPitch, cameraBlend);
-
-        if (closeButton != null)
-        {
-            closeButton.onClick.RemoveAllListeners();
-            closeButton.onClick.AddListener(Close);
-        }
-
-        IsOpen = true;
         BuildRows();
         Refresh();
 
         // rows were just spawned into a panel enabled this frame - settle it now, innermost
         // first, or they appear stacked on top of one another
-        Menus.RebuildLayout(rowContainer as RectTransform,
+        UIManager.RebuildLayout(rowContainer as RectTransform,
                             rowContainer != null ? rowContainer.parent as RectTransform : null);
     }
 
-    public void Close()
-    {
-        AudioManager.PlayClose();
-        _store = null;
-        _interactor = null;
-        IsOpen = false;
-
-        if (_cameraRig != null) _cameraRig.ClearActionFraming();
-
-        gameObject.SetActive(false);
-    }
+    protected override void OnDismissed() => _store = null;
 
     /// <summary>
     /// One row per thing the farm currently holds, in the order the store lists them.

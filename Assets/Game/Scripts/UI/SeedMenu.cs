@@ -11,11 +11,8 @@ using UnityEngine.UI;
 /// The panel is authored as a prefab under Prefabs/UI and lives beneath MainCanvas.
 /// This script only shows/hides it and fills in data - all styling is in the prefab.
 /// </summary>
-public class SeedMenu : MonoBehaviour
+public class SeedMenu : BaseMenu
 {
-    /// <summary>True while the menu is up, so gameplay input can ignore Interact.</summary>
-    public static bool IsOpen { get; private set; }
-
     [Header("Content")]
     public CropDef[] crops;
 
@@ -24,19 +21,11 @@ public class SeedMenu : MonoBehaviour
     public int level = 1;
 
     [Header("Prefab wiring")]
-    [SerializeField] GameObject panelRoot;
     [SerializeField] Transform cropButtonContainer;
     [SerializeField] CropButton cropButtonPrefab;
-    [SerializeField] Button cancelButton;
 
     readonly System.Collections.Generic.List<CropButton> _buttons = new System.Collections.Generic.List<CropButton>();
     SoilPlot _target;
-    PlayerInteractor _interactor;
-
-    void OnDestroy()
-    {
-        IsOpen = false;
-    }
 
     /// <summary>
     /// One row per crop. Clears any existing rows first so this is safe to call again
@@ -62,38 +51,20 @@ public class SeedMenu : MonoBehaviour
 
     public void Open(SoilPlot plot, PlayerInteractor interactor = null)
     {
-        AudioManager.PlayOpen();
         _target = plot;
-        _interactor = interactor;
-
-        gameObject.SetActive(true);              // this object is the toggle
-        if (panelRoot != null) panelRoot.SetActive(true);
+        Present(interactor);
 
         // rebuilt on every open rather than once at startup: three rows is nothing, and it
         // cannot go stale after a domain reload wipes the bindings
-        if (cancelButton != null)
-        {
-            cancelButton.onClick.RemoveAllListeners();
-            cancelButton.onClick.AddListener(Close);
-        }
         BuildCropButtons();
-
-        IsOpen = true;
         Refresh();
 
         // rows were just spawned into a panel enabled this frame - settle it now
-        Menus.RebuildLayout(cropButtonContainer as RectTransform,
+        UIManager.RebuildLayout(cropButtonContainer as RectTransform,
                             cropButtonContainer != null ? cropButtonContainer.parent as RectTransform : null);
     }
 
-    public void Close()
-    {
-        AudioManager.PlayClose();
-        _target = null;
-        _interactor = null;
-        IsOpen = false;
-        gameObject.SetActive(false);
-    }
+    protected override void OnDismissed() => _target = null;
 
     void Refresh()
     {
@@ -107,8 +78,8 @@ public class SeedMenu : MonoBehaviour
         if (_target == null) { Close(); return; }
 
         // The plot owns which beat plays - the menu only forwards who is doing the planting.
-        if (!_target.TryPlant(crop, _interactor)) { Refresh(); return; }
+        if (!_target.TryPlant(crop, Interactor)) { Refresh(); return; }
 
-        Close();
+        Close(false);          // they picked a crop; the planting beat speaks for it
     }
 }

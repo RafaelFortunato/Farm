@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// The strip of item chips beside the coin readout.
@@ -45,7 +45,7 @@ public class InventoryHud : MonoBehaviour
     /// </summary>
     void LateUpdate()
     {
-        bool aside = Menus.AnyOpen;
+        bool aside = UIManager.AnyMenuOpen;
         if (aside == _stoodAside) return;
 
         _stoodAside = aside;

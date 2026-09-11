@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Picks the nearest usable Interactable within range and routes the Interact input to it.
@@ -32,7 +32,7 @@ public class PlayerInteractor : MonoBehaviour
     /// to "can I act right now" - input polling and the world prompt both read it, so the
     /// prompt can never offer something the button would refuse.
     /// </summary>
-    public bool CanInteractNow => !Menus.AnyOpen && !Controller.IsBusy;
+    public bool CanInteractNow => !UIManager.AnyMenuOpen && !Controller.IsBusy;
 
     InteractPrompt _prompt;
     InputSystem_Actions _input;

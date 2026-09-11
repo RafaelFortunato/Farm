@@ -44049,6 +44049,7 @@ MonoBehaviour:
   mushroomPatch: {fileID: 21241191}
   upgradeAction: {fileID: 11400000, guid: 1955b7d0e1f6ce94f90c45fe813963b9, type: 2}
   _level: 1
+  buildSound: {fileID: 11400000, guid: 0b04ed3b9ea270a42b97b6225577f143, type: 2}
   upgradeSound: {fileID: 11400000, guid: 83824bf6146c8ab4a8f38bea3b2d1ad1, type: 2}
   winSound: {fileID: 11400000, guid: 7001d4ad2d3c0d148b72ba9a2c6a1117, type: 2}
 --- !u!1001 &1416769337

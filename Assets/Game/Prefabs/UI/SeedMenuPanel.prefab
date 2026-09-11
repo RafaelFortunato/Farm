@@ -49,14 +49,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48b88a3ca10daa64baef5e133e3440ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SeedMenu
+  panelRoot: {fileID: 6389895931366127255}
+  closeButton: {fileID: 8216214064651157125}
+  cameraZoom: 0
+  cameraPitch: 0
+  cameraBlend: 0.35
   crops:
   - {fileID: 11400000, guid: 9c1a7beb05a95c84da19a60ab8bc3880, type: 2}
   - {fileID: 11400000, guid: 72b965e1b93775e4d88f602590e79825, type: 2}
   - {fileID: 11400000, guid: a45b72a9679d24d46bd6e32f7634903c, type: 2}
-  panelRoot: {fileID: 6389895931366127255}
+  level: 1
   cropButtonContainer: {fileID: 7340908574870613001}
   cropButtonPrefab: {fileID: 5829259819156918603, guid: d7fd56be4655dfa439a7513f154f4289, type: 3}
-  cancelButton: {fileID: 8216214064651157125}
 --- !u!1 &2037901407085074133
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -18,7 +18,8 @@ using UnityEngine;
 /// exercised without a full GameManager rig, and a missing manager should cost a
 /// sound, never a NullReferenceException.
 /// </summary>
-public class AudioManager : MonoBehaviour
+[DefaultExecutionOrder(-100)]
+public class AudioManager : Singleton<AudioManager>
 {
     [Header("Voices")]
     [Tooltip("Simultaneous sounds. Once they're all busy the oldest is recycled, so " +
@@ -94,8 +95,6 @@ public class AudioManager : MonoBehaviour
              "for. Worth switching off once a sound has been signed off.")]
     [SerializeField] bool logPlays;
 
-    public static AudioManager Instance { get; private set; }
-
     // Player-set levels live here rather than in the settings UI, so audio starts at
     // the saved level on the very first frame instead of at whatever the scene was
     // authored with. The serialized fields double as the defaults: an unset key
@@ -121,26 +120,21 @@ public class AudioManager : MonoBehaviour
     public static float AmbienceVolume => Instance != null ? Instance.ambienceVolume : 0f;
 
     /// <summary>
-    /// Claims the static instance, restores saved levels, then builds the voice pool
-    /// and starts the ambience bed - in that order, so the bed starts at the
-    /// player's own volume rather than the scene's authored one.
+    /// Restores saved levels, then builds the voice pool and starts the ambience bed - in that
+    /// order, so the bed starts at the player's own volume rather than the scene's authored one.
+    ///
+    /// Runs from OnBind rather than Awake because Singleton binds in Awake AND OnEnable: a
+    /// domain reload mid-play re-runs only OnEnable, so anything done solely in Awake is lost
+    /// for the rest of the session. The guard is what makes a second bind harmless - the voices
+    /// are already parented here, and building again would stack a second pool on top.
     /// </summary>
-    void Awake()
+    protected override void OnBind()
     {
-        Instance = this;
+        if (_voices != null) return;
+
         LoadVolumePrefs();
         BuildVoices();
         StartAmbience();
-    }
-
-    /// <summary>
-    /// Releases the static instance, but only if this manager still owns it - a
-    /// scene reload builds the new one before tearing the old one down, and clearing
-    /// unconditionally would leave the live manager unreachable.
-    /// </summary>
-    void OnDestroy()
-    {
-        if (Instance == this) Instance = null;
     }
 
     /// <summary>
@@ -198,6 +192,11 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     void BuildVoices()
     {
+        // A domain reload wipes the array but leaves the voice objects parented here, so
+        // clear them out rather than ending up with two pools.
+        for (int i = transform.childCount - 1; i >= 0; i--)
+            DestroyImmediate(transform.GetChild(i).gameObject);
+
         int count = Mathf.Max(1, voiceCount);
         _voices = new AudioSource[count];
         _voiceStartedAt = new float[count];

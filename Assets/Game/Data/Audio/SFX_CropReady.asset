@@ -15,7 +15,7 @@ MonoBehaviour:
   clips:
   - {fileID: 8300000, guid: 553baa2f24bdc624e96beaa502511d20, type: 3}
   volume: 0.4
-  pitchRange: {x: 0.96, y: 1.06}
+  pitchRange: {x: 1, y: 1.02}
   minRetriggerInterval: 0.3
   startDelay: 0
   spatialBlend: 1

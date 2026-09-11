@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -100,7 +100,7 @@ public class OffscreenMarker : MonoBehaviour
     /// <summary>Works out where the marker belongs. False when there is nothing to point at.</summary>
     bool Place(Transform target, ItemDef item)
     {
-        if (target == null || item == null || Menus.AnyOpen) return false;
+        if (target == null || item == null || UIManager.AnyMenuOpen) return false;
 
         EnsureInit();
         if (_canvas == null) return false;

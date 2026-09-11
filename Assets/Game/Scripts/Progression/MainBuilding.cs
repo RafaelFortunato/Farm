@@ -137,7 +137,10 @@ public class MainBuilding : Interactable
     }
 
     [Header("Sound")]
-    [Tooltip("Flourish as the farmhouse grows.")]
+    [Tooltip("Building work - hammering, sawing. Runs UNDER the upgrade beat, so it should be " +
+             "about as long as the action itself.")]
+    [SerializeField] SoundEvent buildSound;
+    [Tooltip("Fanfare when the work finishes and the new farmhouse is standing there.")]
     [SerializeField] SoundEvent upgradeSound;
     [Tooltip("Victory sting on the final upgrade.")]
     [SerializeField] SoundEvent winSound;
@@ -149,6 +152,10 @@ public class MainBuilding : Interactable
         if (!CanAfford()) { AudioManager.PlayDenied(); return; }
 
         // cached delegate rather than a lambda, the way the sell counter does it
+        // The work runs UNDER the animation - the player is swinging a hammer, and the sound
+        // has to be happening while they do it rather than reporting it afterwards.
+        AudioManager.PlayAt(buildSound, transform.position);
+
         _onUpgraded ??= Upgraded;
         interactor.Controller.BeginAction(upgradeAction, transform, _onUpgraded);
     }
@@ -171,9 +178,10 @@ public class MainBuilding : Interactable
         Refresh();
         Changed?.Invoke(_level);
 
-        // The farmhouse flourish plays on every upgrade INCLUDING the last one, where the
-        // victory sting lands on top of it - the building really did just get built, and
-        // swallowing that to make room for the fanfare loses the payoff of the final tap.
+        // AFTER Apply, which is what swaps the art - so the fanfare lands on the new building
+        // appearing rather than a moment before it. Plays on every upgrade INCLUDING the last,
+        // where the victory sting stacks on top: the building really did just get built, and
+        // swallowing that to make room would lose the payoff of the final tap.
         AudioManager.PlayAt(upgradeSound, transform.position);
 
         if (IsMaxLevel) Win();

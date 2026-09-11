@@ -13,29 +13,18 @@ using UnityEngine.UI;
 /// and carry on - this is a twenty-minute portfolio piece, and taking the toy away at the
 /// moment of success would be a strange reward.
 /// </summary>
-public class WinPanel : MonoBehaviour
+public class WinPanel : BaseMenu
 {
-    /// <summary>True while the end screen is up, so gameplay input can ignore Interact.</summary>
-    public static bool IsOpen { get; private set; }
-
     [Header("Prefab wiring")]
-    [SerializeField] GameObject panelRoot;
     [SerializeField] TextMeshProUGUI headline;
     [SerializeField] TextMeshProUGUI stats;
-    [SerializeField] Button closeButton;
-
-    [Header("Camera")]
-    [Tooltip("How far the camera pulls back to show off the finished farm.")]
-    public float cameraZoom = -6f;
-    public float cameraPitch = 4f;
-    public float cameraBlend = 0.8f;
-
-    CameraFollow _cameraRig;
 
     public void Show(float seconds, int coinsEarned, int dishesBaked, int truckOrders)
     {
-        gameObject.SetActive(true);              // this object is the toggle
-        if (panelRoot != null) panelRoot.SetActive(true);
+        // pulls back rather than pushing in - the other menus lean toward one thing, this one
+        // wants the player to see the whole island they built. That is the cameraZoom on this
+        // prefab being negative; the behaviour itself is the same as every other panel.
+        Present();
 
         if (headline != null) headline.text = "FARM COMPLETE";
 
@@ -49,34 +38,9 @@ public class WinPanel : MonoBehaviour
                        + "\nRecipes baked<pos=58%>" + dishesBaked
                        + "\nTruck orders<pos=58%>" + truckOrders;
 
-        // pull back rather than push in - the other menus lean toward one thing, this one
-        // wants the player to see the whole island they built
-        if (_cameraRig == null) _cameraRig = GameManager.CameraRig;
-        _cameraRig.SetActionFraming(cameraZoom, cameraPitch, cameraBlend);
-
-        if (closeButton != null)
-        {
-            closeButton.onClick.RemoveAllListeners();
-            closeButton.onClick.AddListener(Close);
-        }
-
-        IsOpen = true;
-        Menus.RebuildLayout(stats != null ? stats.rectTransform : null,
+        UIManager.RebuildLayout(stats != null ? stats.rectTransform : null,
                             panelRoot != null ? panelRoot.transform as RectTransform : null);
     }
-
-    public void Close()
-    {
-        // The other panels announce their own close; this one is the last thing the player
-        // touches in a run, so it gets the same courtesy rather than shutting in silence.
-        AudioManager.PlayClose();
-
-        IsOpen = false;
-        if (_cameraRig != null) _cameraRig.ClearActionFraming();
-        gameObject.SetActive(false);
-    }
-
-    void OnDestroy() => IsOpen = false;
 
     static string Clock(float seconds)
     {

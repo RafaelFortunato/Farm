@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Where the game's one-of-a-kind UI lives.
@@ -43,6 +44,96 @@ public class UIManager : Singleton<UIManager>
 
     /// <summary>The end screen. Raised by the farmhouse when it reaches its top level.</summary>
     public static WinPanel Win => Instance.winPanel;
+
+    /// <summary>
+    /// The panel currently up, or null. One at a time: opening a second dismisses the first,
+    /// so a single reference is the whole truth about what the UI is showing.
+    ///
+    /// Held here rather than as a flag on each panel because this is where the panels already
+    /// live, and because "what is open" is a question about the UI as a whole.
+    /// </summary>
+    public static BaseMenu OpenMenu { get; private set; }
+
+    /// <summary>
+    /// Does a panel currently own input? Gameplay asks this instead of naming panels, so
+    /// adding a fifth needs no edit here - it only has to derive from BaseMenu.
+    /// </summary>
+    public static bool AnyMenuOpen => OpenMenu != null;
+
+    /// <summary>Claim the slot. Called by BaseMenu when a panel shows itself.</summary>
+    public static void SetOpenMenu(BaseMenu menu) => OpenMenu = menu;
+
+    /// <summary>
+    /// Release the slot, but only if this panel still holds it - a panel torn down after
+    /// another has already opened must not clear the newer one.
+    /// </summary>
+    public static void ClearOpenMenu(BaseMenu menu)
+    {
+        if (OpenMenu == menu) OpenMenu = null;
+    }
+
+    /// <summary>
+    /// Dismiss whatever is up, and report whether anything was. This counts as the player
+    /// dismissing it, so it sounds like a close - Escape is exactly "I changed my mind".
+    /// </summary>
+    public static bool CloseOpenMenu()
+    {
+        var menu = OpenMenu;
+        if (menu == null) return false;
+
+        menu.Close();
+        return true;
+    }
+
+    /// <summary>
+    /// Settle a panel's layout immediately, innermost first.
+    ///
+    /// Layout groups and ContentSizeFitters normally resolve at the end of the frame. A panel
+    /// that is activated AND populated in the same frame has not had that pass yet, so its
+    /// first appearance shows rows sitting at default positions on top of each other. Nested
+    /// fitters compound it: the outer one cannot measure until the inner one has solved, so
+    /// the rebuild has to run inside-out.
+    /// </summary>
+    public static void RebuildLayout(RectTransform inner, RectTransform outer)
+    {
+        Canvas.ForceUpdateCanvases();
+        if (inner != null) LayoutRebuilder.ForceRebuildLayoutImmediate(inner);
+        if (outer != null) LayoutRebuilder.ForceRebuildLayoutImmediate(outer);
+    }
+
+    // Escape lives here rather than on each panel: the panels do not know about each other,
+    // and the panel reference this closes already lives here.
+    //
+    // The UI map's Cancel action rather than a raw key check, so it comes through the Input
+    // System like everything else and picks up gamepad B for free - the binding is */{Cancel},
+    // a usage, not a hardcoded Escape.
+    InputSystem_Actions _input;
+
+    // OVERRIDE, not a new method. Singleton declares these virtual and binds Instance in them;
+    // a plain OnEnable here would hide the base one, Unity would call only this, and Instance
+    // would stay null - which is exactly what happened.
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+
+        _input ??= new InputSystem_Actions();
+        _input.UI.Enable();
+    }
+
+    void OnDisable() => _input?.UI.Disable();
+
+    protected override void OnDestroy()
+    {
+        _input?.Dispose();
+        base.OnDestroy();
+    }
+
+    void Update()
+    {
+        // Polled next to the rest of the UI wiring, the way PlayerInteractor polls Interact:
+        // no subscribe/unsubscribe lifecycle to get wrong across a domain reload.
+        if (_input.UI.Cancel.WasPressedThisFrame()) CloseOpenMenu();
+    }
 
     void OnValidate()
     {
