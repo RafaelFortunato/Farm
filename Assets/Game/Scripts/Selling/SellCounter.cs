@@ -59,7 +59,14 @@ public class SellCounter : Interactable
         if (front == null || front.Wanted == null) return;
         if (!front.Arrived) return;                       // still rolling up
 
-        if (!Inventory.TrySpendProduce(front.Wanted, front.Amount)) return;
+        // The prompt already reads "Need 1 Carrot Soup"; this is the audible half of that
+        // answer, so walking up and pressing the button is never met with nothing at all.
+        // Same refusal the farmhouse gives when the coins are short.
+        if (!Inventory.TrySpendProduce(front.Wanted, front.Amount))
+        {
+            AudioManager.PlayDenied();
+            return;
+        }
 
         // cached delegate rather than a lambda: this fires on every sale for the whole
         // session, and the reward rides in a field instead of a captured closure
