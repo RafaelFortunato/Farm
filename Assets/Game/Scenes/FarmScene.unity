@@ -9283,7 +9283,7 @@ MonoBehaviour:
   voiceCount: 24
   masterVolume: 1
   sfxVolume: 1
-  ambienceVolume: 0.3
+  ambienceVolume: 0.5
   fullVolumeDistance: 6
   silenceDistance: 40
   worldSpatialBlend: 0.75
@@ -49135,6 +49135,12 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: 5e5cb217d9d994b47a3ca77a7af8d4ea, type: 2}
     weightAtStart: 20
     weightAtTop: 10
+    minLevel: 3
+    minAmount: 1
+    maxAmount: 1
+  - item: {fileID: 11400000, guid: f3abcf4113e16e441bf5c7fa6ef6cf79, type: 2}
+    weightAtStart: 12
+    weightAtTop: 16
     minLevel: 3
     minAmount: 1
     maxAmount: 1
