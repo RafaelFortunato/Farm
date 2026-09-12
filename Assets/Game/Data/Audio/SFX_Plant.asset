@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundEvent
   clips:
   - {fileID: 8300000, guid: bc3033b50d35b5d4694319880c14a286, type: 3}
-  volume: 0.4
+  volume: 0.15948965
   pitchRange: {x: 0.95, y: 1.05}
   minRetriggerInterval: 0.05
   startDelay: 0.75
   spatialBlend: -1
+  fullVolumeDistance: -1
+  silenceDistance: -1
