@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -212,6 +213,10 @@ public class AudioManager : Singleton<AudioManager>
     float[] _voiceStartedAt;
     AudioSource _ambienceSource;
 
+    /// <summary>Temporary multiplier on the ambience bed, 1 when nothing is ducking it.</summary>
+    float _ambienceDuck = 1f;
+    Coroutine _duckRoutine;
+
 
     /// <summary>
     /// Last time each event was allowed through, for the per-event rate limit. Kept
@@ -275,8 +280,68 @@ public class AudioManager : Singleton<AudioManager>
         if (Instance == null) return;
 
         Instance.ambienceVolume = Mathf.Clamp01(value);
-        if (Instance._ambienceSource != null)
-            Instance._ambienceSource.volume = Instance.ambienceVolume * Instance.masterVolume;
+        Instance.ApplyAmbienceVolume();
+    }
+
+    /// <summary>
+    /// What the bed actually plays at: the player's setting, times whatever the duck is
+    /// currently holding it down to.
+    ///
+    /// Kept separate so a duck never touches the SETTING. The two would otherwise fight -
+    /// duck while the settings panel is open and the slider would jump, or worse, closing
+    /// the panel would save the ducked level as the player's choice.
+    /// </summary>
+    void ApplyAmbienceVolume()
+    {
+        if (_ambienceSource != null)
+            _ambienceSource.volume = ambienceVolume * masterVolume * _ambienceDuck;
+    }
+
+    /// <summary>
+    /// Pulls the ambience bed down for a moment so something else can be heard over it,
+    /// then eases it back. Used by the victory beat, where a five second fanfare would
+    /// otherwise fight the music underneath it.
+    ///
+    /// Unscaled time throughout: the win screen freezes the clock, and a duck that never
+    /// lifted because timeScale was zero would leave the game permanently quiet.
+    ///
+    /// A second call replaces the first rather than stacking, so a duck cannot be left
+    /// half-applied by two overlapping beats.
+    /// </summary>
+    public static void DuckAmbience(float toFraction, float holdSeconds, float fadeSeconds = 0.8f)
+    {
+        if (Instance == null) return;
+
+        if (Instance._duckRoutine != null) Instance.StopCoroutine(Instance._duckRoutine);
+        Instance._duckRoutine = Instance.StartCoroutine(
+            Instance.DuckRoutine(Mathf.Clamp01(toFraction), holdSeconds, Mathf.Max(fadeSeconds, 0.01f)));
+    }
+
+    IEnumerator DuckRoutine(float to, float hold, float fade)
+    {
+        // down fast, so the fanfare is clear from its first note
+        float from = _ambienceDuck;
+        for (float t = 0f; t < 0.15f; t += Time.unscaledDeltaTime)
+        {
+            _ambienceDuck = Mathf.Lerp(from, to, t / 0.15f);
+            ApplyAmbienceVolume();
+            yield return null;
+        }
+        _ambienceDuck = to;
+        ApplyAmbienceVolume();
+
+        if (hold > 0f) yield return new WaitForSecondsRealtime(hold);
+
+        // back up slowly, so the music returning is not itself an event
+        for (float t = 0f; t < fade; t += Time.unscaledDeltaTime)
+        {
+            _ambienceDuck = Mathf.Lerp(to, 1f, t / fade);
+            ApplyAmbienceVolume();
+            yield return null;
+        }
+        _ambienceDuck = 1f;
+        ApplyAmbienceVolume();
+        _duckRoutine = null;
     }
 
     /// <summary>
@@ -394,8 +459,8 @@ public class AudioManager : Singleton<AudioManager>
         // Flat stereo: a bed that pans as the action moves would draw attention to
         // itself, which is the opposite of what a bed is for.
         _ambienceSource.spatialBlend = 0f;
-        _ambienceSource.volume = ambienceVolume * masterVolume;
         _ambienceSource.Play();
+        ApplyAmbienceVolume();
     }
 
     /// <summary>Plays a sound at a point on the farm. Silent if no manager exists.</summary>

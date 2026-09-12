@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 8ae5fdda59146ab428e6c46483353bcd
+guid: 5e2f992c4e853f340b1223976306d1a3
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
@@ -32,11 +32,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Victory
+      name: ChickenDance
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 135
+      lastFrame: 143
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

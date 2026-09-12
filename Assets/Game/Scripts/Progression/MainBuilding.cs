@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -145,6 +146,26 @@ public class MainBuilding : Interactable
     [Tooltip("Victory sting on the final upgrade.")]
     [SerializeField] SoundEvent winSound;
 
+    [Header("Victory beat")]
+    [Tooltip("The dance the cat performs when the last upgrade lands. Its duration drives the " +
+             "whole celebration, and its camera framing is what pushes in on the cat.")]
+    [SerializeField] CharacterAction victoryAction;
+
+    [Tooltip("Confetti, fired at the cat. Spawned rather than kept in the scene so it cannot " +
+             "be seen sitting idle, and it cleans itself up.")]
+    [SerializeField] ParticleSystem confettiPrefab;
+
+    [Tooltip("How far above the cat the confetti bursts from.")]
+    [SerializeField] float confettiHeight = 2.6f;
+
+    [Tooltip("What the ambience bed drops to while the fanfare plays, as a fraction of the " +
+             "player's own setting. 0.15 leaves it just audible underneath.")]
+    [SerializeField, Range(0f, 1f)] float ambienceDuck = 0.15f;
+
+    [Tooltip("Pause after the camera has pulled back before the stats appear, in seconds. " +
+             "The panel should land on a settled shot, not interrupt the move.")]
+    [SerializeField] float pauseBeforePanel = 0.35f;
+
     public override void Interact(PlayerInteractor interactor)
     {
         // The prompt already says what is missing; this is the audible half of that answer,
@@ -200,14 +221,70 @@ public class MainBuilding : Interactable
         if (mushroomPatch != null) mushroomPatch.level = _level;
     }
 
+    /// <summary>
+    /// The end of the run, as a sequence rather than a single moment.
+    ///
+    /// The cat turns to camera and dances, the camera comes in close, confetti goes up and the
+    /// fanfare plays over a ducked music bed. Only when all of that has finished and the camera
+    /// has settled back does the stats panel appear. Showing the panel up front, which is what
+    /// this used to do, threw away the celebration by covering it.
+    ///
+    /// A coroutine because this is a one-off ordered sequence with waits in it - the thing
+    /// coroutines are for - and because it needs no per-frame work of its own between beats.
+    /// </summary>
     void Win()
+    {
+        // The run's time is read HERE, not at the end: the celebration takes five seconds and
+        // the player did not spend them farming.
+        _finishedAt = Time.timeSinceLevelLoad;
+
+        StartCoroutine(VictorySequence());
+    }
+
+    float _finishedAt;
+
+    IEnumerator VictorySequence()
     {
         AudioManager.PlayUI(winSound);   // flat: the run is over, it is not coming from a place
 
-        var panel = UIManager.Win;
-        if (panel == null) return;
+        // under the fanfare for its whole length, then eased back
+        float fanfare = 5.8f;
+        AudioManager.DuckAmbience(ambienceDuck, fanfare, 1.2f);
 
-        panel.Show(Time.timeSinceLevelLoad, RunStats.CoinsEarned,
+        var controller = GameManager.Player;
+        var player = GameManager.PlayerTransform;
+        var camera = GameManager.CameraTransform;
+
+        if (confettiPrefab != null && player != null)
+        {
+            var burst = Instantiate(confettiPrefab,
+                                    player.position + Vector3.up * confettiHeight,
+                                    Quaternion.identity);
+            burst.Play();
+            // outlives its own emission by the longest particle lifetime, so nothing pops out
+            Destroy(burst.gameObject, burst.main.duration + burst.main.startLifetime.constantMax + 1f);
+        }
+
+        bool danced = false;
+        if (controller != null && victoryAction != null)
+        {
+            // faceTarget is the CAMERA, so the cat turns out of the world and toward the player
+            controller.BeginAction(victoryAction, camera, () => danced = true);
+
+            // unscaled, in case anything else has frozen the clock by now
+            float guard = victoryAction.duration + 2f;
+            for (float t = 0f; !danced && t < guard; t += Time.unscaledDeltaTime) yield return null;
+        }
+
+        // BeginAction's completion fires as the camera STARTS easing back, so wait out the
+        // blend before the panel lands on top of a moving shot.
+        float settle = (victoryAction != null ? victoryAction.cameraBlend : 0.4f) + pauseBeforePanel;
+        for (float t = 0f; t < settle; t += Time.unscaledDeltaTime) yield return null;
+
+        var panel = UIManager.Win;
+        if (panel == null) yield break;
+
+        panel.Show(_finishedAt, RunStats.CoinsEarned,
                    RunStats.DishesBaked, RunStats.TruckOrdersFilled);
     }
 

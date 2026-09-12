@@ -9287,7 +9287,7 @@ MonoBehaviour:
   fullVolumeDistance: 6
   silenceDistance: 40
   worldSpatialBlend: 0.75
-  ambienceLoop: {fileID: 0}
+  ambienceLoop: {fileID: 8300000, guid: dc79685c8745f9e419f0c387bdd5d743, type: 3}
   uiClick: {fileID: 11400000, guid: 672fd262b2f2d1b49b713fa822543979, type: 2}
   uiOpen: {fileID: 11400000, guid: 7b583d09ad889d74ea74bd84196f6cc8, type: 2}
   uiClose: {fileID: 11400000, guid: e7e24907f6347dd4caaed9dd9a27633a, type: 2}
@@ -44151,6 +44151,11 @@ MonoBehaviour:
   buildSound: {fileID: 11400000, guid: 0b04ed3b9ea270a42b97b6225577f143, type: 2}
   upgradeSound: {fileID: 11400000, guid: 83824bf6146c8ab4a8f38bea3b2d1ad1, type: 2}
   winSound: {fileID: 11400000, guid: 7001d4ad2d3c0d148b72ba9a2c6a1117, type: 2}
+  victoryAction: {fileID: 11400000, guid: 1ff205976004f0f4d904b075448790f2, type: 2}
+  confettiPrefab: {fileID: 7564061987687847840, guid: 4c31c1c189d53d346a9a2efba81f822f, type: 3}
+  confettiHeight: 2.6
+  ambienceDuck: 0.15
+  pauseBeforePanel: 0.35
 --- !u!1001 &1416769337
 PrefabInstance:
   m_ObjectHideFlags: 0
