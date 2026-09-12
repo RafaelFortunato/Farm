@@ -16,5 +16,5 @@ MonoBehaviour:
   tintColor: {r: 0.9098039, g: 0.9490196, b: 1, a: 1}
   icon: {fileID: 21300000, guid: f2bfa46743759e5479d6ff49902cb452, type: 3}
   sellValue: 115
-  worldPrefab: {fileID: 5697800158797286517, guid: e27740dc0f71e6242933939d6050fd41, type: 3}
+  worldPrefab: {fileID: 5697800158797286517, guid: af1118de7eaaaf14cb1124995ce11b17, type: 3}
   iconScale: 1
