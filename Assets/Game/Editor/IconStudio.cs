@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Farm.Farming;
 
 /// <summary>
 /// Renders a UI icon for every ItemDef from its 3D model.

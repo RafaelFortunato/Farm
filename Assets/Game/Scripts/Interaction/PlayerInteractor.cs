@@ -1,129 +1,134 @@
-﻿using UnityEngine;
+using UnityEngine;
+using Farm.UI;
 
-/// <summary>
-/// Picks the nearest usable Interactable within range and routes the Interact input to it.
-///
-/// Uses the static Interactable registry rather than physics overlaps: the farm has a
-/// dozen or so interactables, so a straight distance compare is cheaper than a query
-/// and needs no colliders or layer setup.
-/// </summary>
-[DisallowMultipleComponent]
-[RequireComponent(typeof(PlayerController))]
-public class PlayerInteractor : MonoBehaviour
+namespace Farm.Interaction
 {
-    [Tooltip("How close the player must be, in world units. A ground tile is 2 wide.")]
-    public float range = 2.5f;
-
-    [Tooltip("Optional marker placed over the focused object.")]
-    public GameObject focusMarker;
-
-    public Interactable Current { get; private set; }
-
     /// <summary>
-    /// The movement controller on this same object, so interactions can lock input.
-    /// Resolved on first use rather than only in OnEnable: a domain reload wipes the cache
-    /// and edit-mode callers can reach this before OnEnable has run again.
+    /// Picks the nearest usable Interactable within range and routes the Interact input to it.
+    ///
+    /// Uses the static Interactable registry rather than physics overlaps: the farm has a
+    /// dozen or so interactables, so a straight distance compare is cheaper than a query
+    /// and needs no colliders or layer setup.
     /// </summary>
-    public PlayerController Controller =>
-        _controller != null ? _controller : (_controller = GetComponent<PlayerController>());
-
-    /// <summary>
-    /// True while the player is actually free to start an interaction. The single answer
-    /// to "can I act right now" - input polling and the world prompt both read it, so the
-    /// prompt can never offer something the button would refuse.
-    /// </summary>
-    public bool CanInteractNow => !UIManager.AnyMenuOpen && !Controller.IsBusy;
-
-    InteractPrompt _prompt;
-    InputSystem_Actions _input;
-    PlayerController _controller;
-    Transform _tf;
-    float _rangeSq;
-
-    void OnEnable()
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(PlayerController))]
+    public class PlayerInteractor : MonoBehaviour
     {
-        _tf = transform;
-        _rangeSq = range * range;
+        [Tooltip("How close the player must be, in world units. A ground tile is 2 wide.")]
+        public float range = 2.5f;
 
-        // wired on the UIManager: the prompt is saved disabled so it does not clutter the
-        // editor view, and a disabled object cannot announce itself.
-        _prompt = UIManager.Prompt;
+        [Tooltip("Optional marker placed over the focused object.")]
+        public GameObject focusMarker;
 
-        _input ??= new InputSystem_Actions();
-        _input.Player.Enable();
-    }
+        /// <summary>What the player would use if they pressed the button now, or null.</summary>
+        public Interactable Current { get; private set; }
 
-    void OnDisable() => _input?.Player.Disable();
+        /// <summary>
+        /// The movement controller on this same object, so interactions can lock input.
+        /// Resolved on first use rather than only in OnEnable: a domain reload wipes the cache
+        /// and edit-mode callers can reach this before OnEnable has run again.
+        /// </summary>
+        public PlayerController Controller =>
+            _controller != null ? _controller : (_controller = GetComponent<PlayerController>());
 
-    void OnDestroy() => _input?.Dispose();
+        /// <summary>
+        /// True while the player is actually free to start an interaction. The single answer
+        /// to "can I act right now" - input polling and the world prompt both read it, so the
+        /// prompt can never offer something the button would refuse.
+        /// </summary>
+        public bool CanInteractNow => !UIManager.AnyMenuOpen && !Controller.IsBusy;
 
-    void OnValidate() => _rangeSq = range * range;
+        InteractPrompt _prompt;
+        InputSystem_Actions _input;
+        PlayerController _controller;
+        Transform _tf;
+        float _rangeSq;
 
-    void Update()
-    {
-        UpdateFocus();
-
-        // Polled rather than a 'performed' subscription: there is no subscribe/unsubscribe
-        // lifecycle to get wrong across domain reloads, and it reads next to the focus logic.
-        if (_input.Player.Interact.WasPressedThisFrame()
-            && CanInteractNow
-            && Current != null && Current.CanInteract)
+        void OnEnable()
         {
-            Current.Interact(this);
-        }
-    }
+            _tf = transform;
+            _rangeSq = range * range;
 
-    // Driven from here rather than from the prompt's own Update, so the prompt object can
-    // stay disabled in the scene. LateUpdate so it reads the focus picked this frame.
-    void LateUpdate()
-    {
-        if (_prompt != null) _prompt.Show(CanInteractNow ? Current : null);
-    }
+            // wired on the UIManager: the prompt is saved disabled so it does not clutter the
+            // editor view, and a disabled object cannot announce itself.
+            _prompt = UIManager.Prompt;
 
-    void UpdateFocus()
-    {
-        Interactable best = null;
-        float bestSq = _rangeSq;
-        Vector3 me = _tf.position;
-
-        var all = Interactable.All;
-        for (int i = 0; i < all.Count; i++)
-        {
-            var it = all[i];
-            if (!it.CanInteract) continue;
-
-            Vector3 d = it.FocusPoint - me;
-            float sq = d.x * d.x + d.z * d.z;   // planar - height shouldn't matter
-            if (sq > bestSq) continue;
-
-            bestSq = sq;
-            best = it;
+            _input ??= new InputSystem_Actions();
+            _input.Player.Enable();
         }
 
-        if (best != Current)
+        void OnDisable() => _input?.Player.Disable();
+
+        void OnDestroy() => _input?.Dispose();
+
+        void OnValidate() => _rangeSq = range * range;
+
+        void Update()
+        {
+            UpdateFocus();
+
+            // Polled rather than a 'performed' subscription: there is no subscribe/unsubscribe
+            // lifecycle to get wrong across domain reloads, and it reads next to the focus logic.
+            if (_input.Player.Interact.WasPressedThisFrame()
+                && CanInteractNow
+                && Current != null && Current.CanInteract)
+            {
+                Current.Interact(this);
+            }
+        }
+
+        // Driven from here rather than from the prompt's own Update, so the prompt object can
+        // stay disabled in the scene. LateUpdate so it reads the focus picked this frame.
+        void LateUpdate()
+        {
+            if (_prompt != null) _prompt.Show(CanInteractNow ? Current : null);
+        }
+
+        void UpdateFocus()
+        {
+            Interactable best = null;
+            float bestSq = _rangeSq;
+            Vector3 me = _tf.position;
+
+            var all = Interactable.All;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var it = all[i];
+                if (!it.CanInteract) continue;
+
+                Vector3 d = it.FocusPoint - me;
+                float sq = d.x * d.x + d.z * d.z;   // planar - height shouldn't matter
+                if (sq > bestSq) continue;
+
+                bestSq = sq;
+                best = it;
+            }
+
+            if (best != Current)
+            {
+                if (Current != null) Current.OnFocusExit();
+                Current = best;
+                if (Current != null) Current.OnFocusEnter();
+
+                if (focusMarker != null) focusMarker.SetActive(Current != null);
+            }
+
+            if (focusMarker != null && Current != null)
+                focusMarker.transform.position = Current.FocusPoint;
+        }
+
+        /// <summary>Called by UI so a menu can be dismissed without re-triggering interaction.</summary>
+        public void ClearFocus()
         {
             if (Current != null) Current.OnFocusExit();
-            Current = best;
-            if (Current != null) Current.OnFocusEnter();
-
-            if (focusMarker != null) focusMarker.SetActive(Current != null);
+            Current = null;
+            if (focusMarker != null) focusMarker.SetActive(false);
         }
 
-        if (focusMarker != null && Current != null)
-            focusMarker.transform.position = Current.FocusPoint;
-    }
-
-    /// <summary>Called by UI so a menu can be dismissed without re-triggering interaction.</summary>
-    public void ClearFocus()
-    {
-        if (Current != null) Current.OnFocusExit();
-        Current = null;
-        if (focusMarker != null) focusMarker.SetActive(false);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = new Color(1f, 0.9f, 0.3f, 0.5f);
-        Gizmos.DrawWireSphere(transform.position, range);
+        void OnDrawGizmosSelected()
+        {
+            Gizmos.color = new Color(1f, 0.9f, 0.3f, 0.5f);
+            Gizmos.DrawWireSphere(transform.position, range);
+        }
     }
 }

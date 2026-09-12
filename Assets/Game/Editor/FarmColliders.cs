@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Farm.Cooking;
+using Farm.Selling;
 
 /// <summary>
 /// Gives the farm its collision, on the PREFABS rather than on the scene objects.

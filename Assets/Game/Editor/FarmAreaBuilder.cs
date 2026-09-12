@@ -4,6 +4,9 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Farm.Cooking;
+using Farm.Progression;
+using Farm.Selling;
 
 /// <summary>
 /// Sorts the starting island into the groups FarmExpansion switches on, one per farm level.

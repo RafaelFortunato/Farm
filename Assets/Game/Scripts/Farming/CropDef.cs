@@ -1,46 +1,56 @@
 using UnityEngine;
 
-/// <summary>
-/// An item you can also plant. All balance lives here so tuning the 20-minute target never
-/// requires a code change.
-/// </summary>
-[CreateAssetMenu(fileName = "Crop_", menuName = "Farm/Crop Definition")]
-public class CropDef : ItemDef
+namespace Farm.Farming
 {
-    [Header("Growth")]
-    [Tooltip("Visual for each growth stage, in order. The last one is the harvestable look.")]
-    public GameObject[] stagePrefabs;
-
-    [Tooltip("Optional per-stage uniform scale. Leave empty for 1. Lets a crop with only a " +
-             "finished model (e.g. wheat) fake its stages by scaling.")]
-    public float[] stageScales;
-
-    [Tooltip("Seconds from planting to fully grown.")]
-    public float growSeconds = 20f;
-
-    [Tooltip("How many items one planting yields. The ripe stage prefab should show this many - " +
-             "a plant bearing one carrot that hands over four reads as a bug, not a bonus.")]
-    [Min(1)] public int yieldPerHarvest = 1;
-
-    [Header("Economy")]
-    [Tooltip("Farmhouse level the shop starts stocking this. 1 means available from the start.")]
-    public int requiredLevel = 1;
-
-    public int StageCount => stagePrefabs != null ? stagePrefabs.Length : 0;
-
-    // A crop rarely needs its own pickup model - the ripe stage already is one.
-    public override GameObject DisplayPrefab =>
-        worldPrefab != null ? worldPrefab : StagePrefab(StageCount - 1);
-
-    public GameObject StagePrefab(int index)
+    /// <summary>
+    /// An item you can also plant. All balance lives here so tuning the 20-minute target never
+    /// requires a code change.
+    /// </summary>
+    [CreateAssetMenu(fileName = "Crop_", menuName = "Farm/Crop Definition")]
+    public class CropDef : ItemDef
     {
-        if (stagePrefabs == null || stagePrefabs.Length == 0) return null;
-        return stagePrefabs[Mathf.Clamp(index, 0, stagePrefabs.Length - 1)];
-    }
+        [Header("Growth")]
+        [Tooltip("Visual for each growth stage, in order. The last one is the harvestable look.")]
+        public GameObject[] stagePrefabs;
 
-    public float StageScale(int index)
-    {
-        if (stageScales == null || stageScales.Length == 0) return 1f;
-        return stageScales[Mathf.Clamp(index, 0, stageScales.Length - 1)];
+        [Tooltip("Optional per-stage uniform scale. Leave empty for 1. Lets a crop with only a " +
+                 "finished model (e.g. wheat) fake its stages by scaling.")]
+        public float[] stageScales;
+
+        [Tooltip("Seconds from planting to fully grown.")]
+        public float growSeconds = 20f;
+
+        [Tooltip("How many items one planting yields. The ripe stage prefab should show this many - " +
+                 "a plant bearing one carrot that hands over four reads as a bug, not a bonus.")]
+        [Min(1)] public int yieldPerHarvest = 1;
+
+        [Header("Economy")]
+        [Tooltip("Farmhouse level the shop starts stocking this. 1 means available from the start.")]
+        public int requiredLevel = 1;
+
+        /// <summary>How many growth stages this crop authored. Zero is a wiring mistake, not a valid crop.</summary>
+        public int StageCount => stagePrefabs != null ? stagePrefabs.Length : 0;
+
+        // A crop rarely needs its own pickup model - the ripe stage already is one.
+        /// <summary>
+        /// The model that flies to the player on harvest. Falls back to the final growth stage when no
+        /// dedicated pickup model is authored, so a crop is never harvested into thin air.
+        /// </summary>
+        public override GameObject DisplayPrefab =>
+            worldPrefab != null ? worldPrefab : StagePrefab(StageCount - 1);
+
+        /// <summary>The model for one growth stage, clamped so an out-of-range index cannot throw.</summary>
+        public GameObject StagePrefab(int index)
+        {
+            if (stagePrefabs == null || stagePrefabs.Length == 0) return null;
+            return stagePrefabs[Mathf.Clamp(index, 0, stagePrefabs.Length - 1)];
+        }
+
+        /// <summary>Scale for one growth stage, defaulting to 1 when the crop authored no scales.</summary>
+        public float StageScale(int index)
+        {
+            if (stageScales == null || stageScales.Length == 0) return 1f;
+            return stageScales[Mathf.Clamp(index, 0, stageScales.Length - 1)];
+        }
     }
 }

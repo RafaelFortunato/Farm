@@ -1,197 +1,212 @@
-﻿using UnityEngine;
+using UnityEngine;
+using Farm.Audio;
+using Farm.Farming;
+using Farm.Interaction;
+using Farm.Progression;
+using Farm.UI;
 
-/// <summary>
-/// The stove: turns raw produce into something worth far more.
-///
-/// Idle -> (player picks a recipe) -> Cooking -> Ready -> (player collects) -> Idle, on the
-/// same elapsed-real-time clock a SoilPlot uses, so a throttled browser tab catches up rather
-/// than losing progress. Ingredients are spent when the cook starts, not when it finishes -
-/// the player should feel the cost at the moment they commit.
-///
-/// `level` is the stove's tier and gates which recipes are offered. It rises with the
-/// farmhouse; until that exists it is set in the inspector.
-/// </summary>
-public class Stove : Interactable, ITimedProgress
+namespace Farm.Cooking
 {
-    public enum StoveState { Idle, Cooking, Ready }
-
-    [Header("Recipes")]
-    [Tooltip("Everything this stove could ever make. Entries above the current level show as locked.")]
-    public RecipeDef[] recipes;
-
-    [Tooltip("Which recipes are unlocked. Mirrors the farmhouse level.")]
-    public int level = 1;
-
-    [Header("Player action")]
-    [Tooltip("Beat the player performs when taking the dish out. Leave empty to collect instantly.")]
-    public CharacterAction collectAction;
-
-    [Header("Wiring")]
-    [Tooltip("Icon that floats over the stove while a dish is waiting to be collected. A child " +
-             "of the stove, so it comes and goes with it.")]
-    public ReadyBadge readyBadge;
-
-    [Header("Sound")]
-    [Tooltip("The moment a cook begins.")]
-    [SerializeField] SoundEvent cookStartSound;
-    [Tooltip("Quiet simmer that runs for as long as the stove is busy. Loops, so the clip " +
-             "should be seamless; kept low because it is the only sound here that is " +
-             "continuous rather than an event.")]
-    [SerializeField] SoundEvent cookLoopSound;
-    [Tooltip("Kitchen bell when the dish finishes, matching the badge that appears with it.")]
-    [SerializeField] SoundEvent readySound;
-    [Tooltip("Taking the finished dish off the stove.")]
-    [SerializeField] SoundEvent collectSound;
-
-    [Header("Runtime (read-only)")]
-    [SerializeField] StoveState _state = StoveState.Idle;
-    [SerializeField] RecipeDef _cooking;
-    [SerializeField] float _startedAt;
-
-    string _prompt = "Cook";
-
-    ItemDef _announced;
-
-    public StoveState Current => _state;
-    public RecipeDef CookingNow => _cooking;
-
-    public bool InProgress => _state == StoveState.Cooking;
-
-    /// <summary>0..1 through the cook.</summary>
-    public float Progress
-    {
-        get
-        {
-            if (_state == StoveState.Ready) return 1f;
-            if (_state != StoveState.Cooking || _cooking == null) return 0f;
-            return Mathf.Clamp01((Time.time - _startedAt) / Mathf.Max(_cooking.cookSeconds, 0.01f));
-        }
-    }
-
-    public override bool CanInteract => _state != StoveState.Cooking;
-
-    // The stove's own state enum drives the key, so it changes exactly when the stove does.
-    public override int StateKey => (int)_state;
-
-    // Cached rather than built on access: the prompt is read every frame while focused.
-    public override string Prompt => _prompt;
-
-    /// <summary>True when this stove's tier is high enough to offer the recipe at all.</summary>
-    public bool IsUnlocked(RecipeDef recipe) => recipe != null && recipe.requiredLevel <= level;
-
-    /// <summary>True when the recipe is unlocked AND the crate can pay for it right now.</summary>
-    public bool CanCook(RecipeDef recipe) => IsUnlocked(recipe) && recipe.HasIngredients;
-
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        SetState(_state);   // rebuild the cached prompt, and the badge, from the serialised state
-    }
-
-    /// <summary>Single place where state changes, so the prompt can never drift from it.</summary>
-    void SetState(StoveState next)
-    {
-        // Only on the CHANGE into Ready, and only in play: SetState also runs on enable to
-        // rebuild the prompt from serialised state, which must stay silent.
-        bool justFinished = next == StoveState.Ready && _state != StoveState.Ready;
-        bool wasCooking = _state == StoveState.Cooking;
-
-        _state = next;
-        if (justFinished) AudioManager.PlayAt(readySound, transform.position);
-
-        // The simmer is tied to the STATE rather than to the start and finish calls, so a
-        // stove that comes back mid-cook from serialised state hums the way it should, and
-        // every way out of Cooking - finishing, or being switched off - silences it.
-        if (_state == StoveState.Cooking) AudioManager.StartLoop(cookLoopSound, transform);
-        else if (wasCooking) AudioManager.StopLoop(transform);
-        RefreshBadge();
-        switch (_state)
-        {
-            case StoveState.Idle:  _prompt = "Cook"; break;
-            case StoveState.Ready: _prompt = _cooking != null && _cooking.output != null
-                                          ? "Collect " + Mathf.Max(_cooking.outputCount, 1) + " " + _cooking.output.displayName
-                                          : "Collect"; break;
-            default: _prompt = string.Empty; break;
-        }
-    }
-
-    void Update()
-    {
-        if (_state == StoveState.Cooking && Progress >= 1f) SetState(StoveState.Ready);
-    }
-
     /// <summary>
-    /// Puts the finished dish's icon on the badge over the stove, and takes it away again once
-    /// the dish has been collected.
+    /// The stove: turns raw produce into something worth far more.
     ///
-    /// Only the Ready state, deliberately. A cook takes the better part of a minute and the ring
-    /// over the stove is already counting it down; the moment worth flagging is the one where the
-    /// food is done and nothing is happening. Driven from the state setter rather than per frame,
-    /// because the badge only ever changes when the stove does.
+    /// Idle -> (player picks a recipe) -> Cooking -> Ready -> (player collects) -> Idle, on the
+    /// same elapsed-real-time clock a SoilPlot uses, so a throttled browser tab catches up rather
+    /// than losing progress. Ingredients are spent when the cook starts, not when it finishes -
+    /// the player should feel the cost at the moment they commit.
+    ///
+    /// `level` is the stove's tier and gates which recipes are offered. It rises with the
+    /// farmhouse; until that exists it is set in the inspector.
     /// </summary>
-    void RefreshBadge()
+    public class Stove : Interactable, ITimedProgress
     {
-        var waiting = _state == StoveState.Ready && _cooking != null ? _cooking.output : null;
-        if (waiting == _announced) return;
+        public enum StoveState { Idle, Cooking, Ready }
 
-        _announced = waiting;
-        if (readyBadge != null) readyBadge.Show(waiting);
-    }
+        [Header("Recipes")]
+        [Tooltip("Everything this stove could ever make. Entries above the current level show as locked.")]
+        public RecipeDef[] recipes;
 
-    // A stove switched off with its level group would otherwise leave the simmer running
-    // with nothing visibly making it.
-    void OnDisable() => AudioManager.StopLoop(transform);
+        [Tooltip("Which recipes are unlocked. Mirrors the farmhouse level.")]
+        public int level = 1;
 
-    public override void Interact(PlayerInteractor interactor)
-    {
-        switch (_state)
+        [Header("Player action")]
+        [Tooltip("Beat the player performs when taking the dish out. Leave empty to collect instantly.")]
+        public CharacterAction collectAction;
+
+        [Header("Wiring")]
+        [Tooltip("Icon that floats over the stove while a dish is waiting to be collected. A child " +
+                 "of the stove, so it comes and goes with it.")]
+        public ReadyBadge readyBadge;
+
+        [Header("Sound")]
+        [Tooltip("The moment a cook begins.")]
+        [SerializeField] SoundEvent cookStartSound;
+        [Tooltip("Quiet simmer that runs for as long as the stove is busy. Loops, so the clip " +
+                 "should be seamless; kept low because it is the only sound here that is " +
+                 "continuous rather than an event.")]
+        [SerializeField] SoundEvent cookLoopSound;
+        [Tooltip("Kitchen bell when the dish finishes, matching the badge that appears with it.")]
+        [SerializeField] SoundEvent readySound;
+        [Tooltip("Taking the finished dish off the stove.")]
+        [SerializeField] SoundEvent collectSound;
+
+        [Header("Runtime (read-only)")]
+        [SerializeField] StoveState _state = StoveState.Idle;
+        [SerializeField] RecipeDef _cooking;
+        [SerializeField] float _startedAt;
+
+        string _prompt = "Cook";
+
+        ItemDef _announced;
+
+        /// <summary>Idle, Cooking or Ready.</summary>
+        public StoveState Current => _state;
+        /// <summary>The dish on the heat, or null when the stove is idle.</summary>
+        public RecipeDef CookingNow => _cooking;
+
+        /// <summary>ITimedProgress: true while cooking, which is when the countdown ring shows itself.</summary>
+        public bool InProgress => _state == StoveState.Cooking;
+
+        /// <summary>0..1 through the cook.</summary>
+        public float Progress
         {
-            case StoveState.Idle:
-                UIManager.Kitchen.Open(this, interactor);
-                break;
-            case StoveState.Ready:
-                // The dish pops out at the end of the beat, so the animation reads as its cause.
-                AudioManager.PlayAt(collectSound, transform.position);
-                interactor.Controller.BeginAction(collectAction, transform, Collect);
-                break;
+            get
+            {
+                if (_state == StoveState.Ready) return 1f;
+                if (_state != StoveState.Cooking || _cooking == null) return 0f;
+                return Mathf.Clamp01((Time.time - _startedAt) / Mathf.Max(_cooking.cookSeconds, 0.01f));
+            }
         }
-    }
 
-    /// <summary>
-    /// Starts a cook if the stove is free and the crate can pay. Returns false without
-    /// spending anything otherwise, so the menu can just refresh and stay open.
-    /// </summary>
-    public bool TryStartCooking(RecipeDef recipe)
-    {
-        if (_state != StoveState.Idle || !CanCook(recipe)) return false;
-        if (!recipe.TryConsume()) return false;
+        /// <summary>Usable when idle (to start a dish) or ready (to collect), but not mid-cook.</summary>
+        public override bool CanInteract => _state != StoveState.Cooking;
 
-        _cooking = recipe;
-        _startedAt = Time.time;
-        AudioManager.PlayAt(cookStartSound, transform.position);
-        SetState(StoveState.Cooking);
-        return true;
-    }
+        // The stove's own state enum drives the key, so it changes exactly when the stove does.
+        /// <summary>The stove state, so the prompt refreshes the moment cooking turns to ready.</summary>
+        public override int StateKey => (int)_state;
 
-    void Collect()
-    {
-        if (_state != StoveState.Ready || _cooking == null || _cooking.output == null) return;
+        // Cached rather than built on access: the prompt is read every frame while focused.
+        /// <summary>"Cook" or "Collect Bread", cached rather than rebuilt per frame.</summary>
+        public override string Prompt => _prompt;
 
-        var made = _cooking.output;
-        int amount = Mathf.Max(_cooking.outputCount, 1);
+        /// <summary>True when this stove's tier is high enough to offer the recipe at all.</summary>
+        public bool IsUnlocked(RecipeDef recipe) => recipe != null && recipe.requiredLevel <= level;
 
-        // Straight into the crate. A plot or a hen throws its produce as a Collectable that
-        // flies to the player, but the stove does not: the dish is already announced by the
-        // badge over the stove and the player is standing here to take it, so a model flying
-        // half a metre into them added nothing and made every cooked good need a 3D asset it
-        // otherwise has no use for.
-        Inventory.AddProduce(made, amount);
+        /// <summary>True when the recipe is unlocked AND the crate can pay for it right now.</summary>
+        public bool CanCook(RecipeDef recipe) => IsUnlocked(recipe) && recipe.HasIngredients;
 
-        // Counted here rather than when the cook starts: a dish the player never came back for
-        // is not one they baked, and the end screen should say what came out of the stove.
-        RunStats.RecordDish();
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            SetState(_state);   // rebuild the cached prompt, and the badge, from the serialised state
+        }
 
-        _cooking = null;
-        SetState(StoveState.Idle);
+        /// <summary>Single place where state changes, so the prompt can never drift from it.</summary>
+        void SetState(StoveState next)
+        {
+            // Only on the CHANGE into Ready, and only in play: SetState also runs on enable to
+            // rebuild the prompt from serialised state, which must stay silent.
+            bool justFinished = next == StoveState.Ready && _state != StoveState.Ready;
+            bool wasCooking = _state == StoveState.Cooking;
+
+            _state = next;
+            if (justFinished) AudioManager.PlayAt(readySound, transform.position);
+
+            // The simmer is tied to the STATE rather than to the start and finish calls, so a
+            // stove that comes back mid-cook from serialised state hums the way it should, and
+            // every way out of Cooking - finishing, or being switched off - silences it.
+            if (_state == StoveState.Cooking) AudioManager.StartLoop(cookLoopSound, transform);
+            else if (wasCooking) AudioManager.StopLoop(transform);
+            RefreshBadge();
+            switch (_state)
+            {
+                case StoveState.Idle:  _prompt = "Cook"; break;
+                case StoveState.Ready: _prompt = _cooking != null && _cooking.output != null
+                                              ? "Collect " + Mathf.Max(_cooking.outputCount, 1) + " " + _cooking.output.displayName
+                                              : "Collect"; break;
+                default: _prompt = string.Empty; break;
+            }
+        }
+
+        void Update()
+        {
+            if (_state == StoveState.Cooking && Progress >= 1f) SetState(StoveState.Ready);
+        }
+
+        /// <summary>
+        /// Puts the finished dish's icon on the badge over the stove, and takes it away again once
+        /// the dish has been collected.
+        ///
+        /// Only the Ready state, deliberately. A cook takes the better part of a minute and the ring
+        /// over the stove is already counting it down; the moment worth flagging is the one where the
+        /// food is done and nothing is happening. Driven from the state setter rather than per frame,
+        /// because the badge only ever changes when the stove does.
+        /// </summary>
+        void RefreshBadge()
+        {
+            var waiting = _state == StoveState.Ready && _cooking != null ? _cooking.output : null;
+            if (waiting == _announced) return;
+
+            _announced = waiting;
+            if (readyBadge != null) readyBadge.Show(waiting);
+        }
+
+        // A stove switched off with its level group would otherwise leave the simmer running
+        // with nothing visibly making it.
+        void OnDisable() => AudioManager.StopLoop(transform);
+
+        /// <summary>Opens the recipe picker when idle, or collects the finished dish when ready.</summary>
+        public override void Interact(PlayerInteractor interactor)
+        {
+            switch (_state)
+            {
+                case StoveState.Idle:
+                    UIManager.Kitchen.Open(this, interactor);
+                    break;
+                case StoveState.Ready:
+                    // The dish pops out at the end of the beat, so the animation reads as its cause.
+                    AudioManager.PlayAt(collectSound, transform.position);
+                    interactor.Controller.BeginAction(collectAction, transform, Collect);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Starts a cook if the stove is free and the crate can pay. Returns false without
+        /// spending anything otherwise, so the menu can just refresh and stay open.
+        /// </summary>
+        public bool TryStartCooking(RecipeDef recipe)
+        {
+            if (_state != StoveState.Idle || !CanCook(recipe)) return false;
+            if (!recipe.TryConsume()) return false;
+
+            _cooking = recipe;
+            _startedAt = Time.time;
+            AudioManager.PlayAt(cookStartSound, transform.position);
+            SetState(StoveState.Cooking);
+            return true;
+        }
+
+        void Collect()
+        {
+            if (_state != StoveState.Ready || _cooking == null || _cooking.output == null) return;
+
+            var made = _cooking.output;
+            int amount = Mathf.Max(_cooking.outputCount, 1);
+
+            // Straight into the crate. A plot or a hen throws its produce as a Collectable that
+            // flies to the player, but the stove does not: the dish is already announced by the
+            // badge over the stove and the player is standing here to take it, so a model flying
+            // half a metre into them added nothing and made every cooked good need a 3D asset it
+            // otherwise has no use for.
+            Inventory.AddProduce(made, amount);
+
+            // Counted here rather than when the cook starts: a dish the player never came back for
+            // is not one they baked, and the end screen should say what came out of the stove.
+            RunStats.RecordDish();
+
+            _cooking = null;
+            SetState(StoveState.Idle);
+        }
     }
 }

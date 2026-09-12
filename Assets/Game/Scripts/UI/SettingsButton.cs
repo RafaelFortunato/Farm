@@ -1,48 +1,51 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// The cog in the corner of the screen that opens the settings dialog.
-///
-/// Separate from SettingsMenu rather than part of it, because the two have opposite
-/// lifetimes: BaseMenu switches its own GameObject off when the panel closes, so a cog
-/// living inside the panel would disappear the moment it was used and never come back.
-///
-/// It holds a reference to the panel rather than asking UIManager for it, so a scene can
-/// carry the cog without the settings panel, or two of them, without either knowing about
-/// the other.
-/// </summary>
-[RequireComponent(typeof(Button))]
-public class SettingsButton : MonoBehaviour
+namespace Farm.UI
 {
-    [Tooltip("The dialog this opens.")]
-    [SerializeField] SettingsMenu settings;
-
-    Button _button;
-
-    void OnEnable()
+    /// <summary>
+    /// The cog in the corner of the screen that opens the settings dialog.
+    ///
+    /// Separate from SettingsMenu rather than part of it, because the two have opposite
+    /// lifetimes: BaseMenu switches its own GameObject off when the panel closes, so a cog
+    /// living inside the panel would disappear the moment it was used and never come back.
+    ///
+    /// It holds a reference to the panel rather than asking UIManager for it, so a scene can
+    /// carry the cog without the settings panel, or two of them, without either knowing about
+    /// the other.
+    /// </summary>
+    [RequireComponent(typeof(Button))]
+    public class SettingsButton : MonoBehaviour
     {
-        if (_button == null) _button = GetComponent<Button>();
+        [Tooltip("The dialog this opens.")]
+        [SerializeField] SettingsMenu settings;
 
-        // Rebound on every enable rather than once at startup: a domain reload leaves the
-        // object alive but wipes the binding, which is the same reason BaseMenu rebinds
-        // its own close button.
-        _button.onClick.RemoveListener(OpenSettings);
-        _button.onClick.AddListener(OpenSettings);
-    }
+        Button _button;
 
-    void OnDisable()
-    {
-        if (_button != null) _button.onClick.RemoveListener(OpenSettings);
-    }
+        void OnEnable()
+        {
+            if (_button == null) _button = GetComponent<Button>();
 
-    void OpenSettings()
-    {
-        if (settings == null) return;
+            // Rebound on every enable rather than once at startup: a domain reload leaves the
+            // object alive but wipes the binding, which is the same reason BaseMenu rebinds
+            // its own close button.
+            _button.onClick.RemoveListener(OpenSettings);
+            _button.onClick.AddListener(OpenSettings);
+        }
 
-        // Already up, so the cog means close - the same thing pressing Escape would do.
-        if (settings.IsOpen) { settings.Close(); return; }
+        void OnDisable()
+        {
+            if (_button != null) _button.onClick.RemoveListener(OpenSettings);
+        }
 
-        settings.Open();
+        void OpenSettings()
+        {
+            if (settings == null) return;
+
+            // Already up, so the cog means close - the same thing pressing Escape would do.
+            if (settings.IsOpen) { settings.Close(); return; }
+
+            settings.Open();
+        }
     }
 }
