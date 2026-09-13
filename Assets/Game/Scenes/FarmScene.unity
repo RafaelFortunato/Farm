@@ -6026,7 +6026,7 @@ MonoBehaviour:
   voiceCount: 24
   masterVolume: 1
   sfxVolume: 1
-  ambienceVolume: 0.5
+  ambienceVolume: 0.3
   fullVolumeDistance: 6
   silenceDistance: 40
   worldSpatialBlend: 0.75
