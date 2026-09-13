@@ -18,17 +18,17 @@ _Link coming soon._
 
 | Input | Action |
 |---|---|
-| **WASD** / **Arrow keys** / **Left stick** | Move |
-| **E** / **Gamepad Y** | Interact with whatever is in front of you — plant, harvest, collect, cook, sell, upgrade |
+| **WASD** / **Arrow keys** | Move |
+| **E** | Interact with whatever is in front of you — plant, harvest, collect, cook, sell, upgrade |
 | **Left click** | Use menus and buttons |
-| **Esc** / **Gamepad B** | Close the open menu |
+| **Esc** | Close the open menu |
 | **Cog button** (bottom right) | Open settings — music and sound volume, saved between sessions (pauses the game) |
 
 ## Gameplay
 
-You start with a single field, a seed store and 30 coins. Walk up to anything and press **E**: plant a plot, wait for it to grow, harvest it, and sell the crop at the store. Coins go into the farmhouse, and every farmhouse upgrade physically grows the island and opens up something new. Reach **Level 5** to win.
+You start with 6 fields, unlimited seeds and a store to sell your crops. Walk up to a field and press **E**: plant a plot, wait for it to grow, harvest it, and sell the crop at the store. Coins go into the farmhouse, and every farmhouse upgrade physically grows the island and opens up something new. Reach **Level 5** to complete the game.
 
-Raw crops sell cheaply, so the real game is turning them into something worth more. The stove turns ingredients into dishes worth several times their inputs, and from Level 3 delivery trucks pull up to the sell counter asking for a specific dish. A truck pays **two to three times** the store price, but only waits **60 seconds** before driving off — a countdown ring over the cab shows how long you have left. Mushrooms pop up around the farm to be foraged along the way.
+Raw crops sell cheaply, so the real game is turning them into something worth more. The stove turns ingredients into dishes worth several times their inputs, and from Level 3 delivery trucks pull up to the sell counter asking for a specific dish. A truck pays **two to three times** the store price, but only waits **80 seconds** before driving off — a countdown ring over the cab shows how long you have left. Mushrooms pop up around the farm to be foraged along the way.
 
 Every timed thing — a growing crop, a dish on the stove, a waiting truck — shows the same countdown ring, and anything ready to collect floats a badge, so the whole farm reads at a glance. Reaching Level 5 plays a short celebration and ends the run with your stats: time taken, coins earned, dishes cooked and truck orders filled.
 
@@ -80,17 +80,11 @@ Later recipes feed on earlier ones — pizza needs bread and cheese — so a str
 
 **A farm that grows.** Each farmhouse level switches on a new section of the island and widens the camera's bounds, so the world expands in step with what the player can afford rather than laying everything out at once.
 
-**One interaction model.** Everything usable registers itself in a shared list, so finding the nearest thing in reach needs no physics queries. Prompts rebuild only when an object's state actually changes, and each action is a data asset that drives the animation, its timing and a small camera push-in.
-
 **One countdown, many clocks.** Crops, the stove and trucks all implement a single `ITimedProgress` interface, so the same countdown ring works over any of them without knowing what it is timing.
-
-**Audio built for a top-down camera.** Sounds fade by distance from the player, with the falloff set per sound event. The audio listener is pinned by a Rotation Constraint so stereo panning follows where things are on screen rather than which way the character faces, and the music ducks automatically under the victory fanfare.
 
 **Tuned for WebGL.** Music streams as compressed audio and sound effects are small mono clips. Rendering uses 2x MSAA, soft shadows and trimmed post-processing with no screen-space ambient occlusion, and the editor's quality settings match the web build's apart from render scale, so what you tune is what ships.
 
-**Editor tooling.** Custom tools render item icons from 3D models, generate collider variants for environment props, preview each farm level from one window, and remove unused assets and packages by walking Unity's dependency graph — which cut the Assets folder from 427 MB to 49 MB.
-
-**Structure.** 56 gameplay scripts in `Farm.*` namespaces, organised into `Audio`, `Cooking`, `Farming`, `Foraging`, `Interaction`, `Progression`, `Selling` and `UI`, with separate runtime and editor assembly definitions. A custom HLSL gradient skybox sets the look.
+**Editor tooling.** Custom tools render item icons from 3D models and preview each farm level from one window.
 
 ---
 
@@ -110,7 +104,7 @@ Later recipes feed on earlier ones — pizza needs bread and cheese — so a str
 
 ## Asset Credits
 
-The game's code is original. Art and audio come from:
+The game's code is original and was mostly done by Claude Code. Art and audio came from:
 
 | Source | Used for |
 |---|---|
