@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Farm.Audio;
-using Farm.Farming;
 using Farm.UI;
 
 namespace Farm.Selling
@@ -20,37 +19,16 @@ namespace Farm.Selling
     /// (plus the ones currently driving off) can ever exist, so they are pooled and recycled rather
     /// than spawned and destroyed. After the first lap the pool stops growing and the feature
     /// allocates nothing per sale.
+    ///
+    /// All the tuning - the order table, the payout, the arrival gap, the patience - lives in a
+    /// <see cref="TruckSettings"/> asset. This component holds only what belongs to the scene.
     /// </summary>
     public class TruckQueue : MonoBehaviour
     {
-        /// <summary>
-        /// One thing trucks might ask for.
-        ///
-        /// The two weights are the same entry's pull at the start of the game and at the last
-        /// farm level; everything in between is interpolated. That is what turns the queue from
-        /// buying carrots into buying cakes without anyone writing a schedule - raw crops fade,
-        /// cooked goods take over, and the pipeline the player built starts paying for itself.
-        /// </summary>
-        [System.Serializable]
-        public struct Demand
-        {
-            public ItemDef item;
+        [Header("Tuning")]
+        [Tooltip("What trucks ask for, what they pay, how often they come and how long they wait.")]
+        [SerializeField] TruckSettings settings;
 
-            [Tooltip("Relative chance at farm level 1.")]
-            public int weightAtStart;
-            [Tooltip("Relative chance at the top farm level.")]
-            public int weightAtTop;
-
-            [Tooltip("Trucks do not ask for this until the farm reaches this level.")]
-            public int minLevel;
-
-            /// <summary>Fewest of the item a truck will ask for.</summary>
-            public int minAmount;
-            /// <summary>Most of the item a truck will ask for. Rolled fresh per order.</summary>
-            public int maxAmount;
-        }
-
-        [Header("Wiring")]
         [Header("Sound")]
         [Tooltip("A truck rolling up to the counter. Optional.")]
         [SerializeField] SoundEvent arriveSound;
@@ -63,6 +41,7 @@ namespace Farm.Selling
                  "approach. Optional.")]
         [SerializeField] SoundEvent hornSound;
 
+        [Header("Wiring")]
         [SerializeField] TruckOrder truckPrefab;
         [Tooltip("Extra truck bodies to alternate between, purely for variety. Optional.")]
         [SerializeField] TruckOrder[] truckVariants;
@@ -74,50 +53,13 @@ namespace Farm.Selling
         [Tooltip("Off-screen point a served truck drives away to.")]
         [SerializeField] Transform exitPoint;
 
-        [Header("Orders")]
-        [Tooltip("What trucks ask for, and how often. Weights shift with the farm level.")]
-        [SerializeField] Demand[] demands;
-
-        [Tooltip("How far the farm has come. Drives which goods trucks ask for, and how often.")]
+        [Header("State")]
+        [Tooltip("How far the farm has come. Drives which goods trucks ask for, and how often. Set " +
+                 "by the farmhouse as it levels up, so this is live state rather than tuning.")]
         public int level = 1;
 
-        [Tooltip("The level at which the end-of-table weights apply. Weights interpolate up to it.")]
-        [SerializeField] int topLevel = 5;
-
-        [Tooltip("What a truck pays, as a multiple of the shop price, rolled fresh for each order. " +
-                 "The shop is the floor and this is the payday. The figure lands in the sell " +
-                 "counter's prompt before the player commits, so it is a decision and not a bet.")]
-        [SerializeField] Vector2 truckPayoff = new Vector2(3f, 5f);
-
-        [Header("Arrivals")]
-        [Tooltip("How many trucks are already parked when the game starts. One, so the player meets " +
-                 "the mechanic straight away without the road looking permanently busy.")]
-        [SerializeField] int startingTrucks = 1;
-
-        [Tooltip("How many trucks may be at the gate at once.")]
-        [SerializeField] int maxParked = 1;
-
-        [Tooltip("Shortest quiet stretch before the next truck rolls in, in seconds.")]
-        [SerializeField, Min(0.1f)] float arriveMinSeconds = 45f;
-
-        [Tooltip("Longest quiet stretch before the next truck rolls in, in seconds. Rolled fresh " +
-                 "each time, and counted from the moment the last one pulled away rather than off a " +
-                 "free-running clock, so serving an order quickly is never punished with a shorter " +
-                 "wait for the next.")]
-        [SerializeField, Min(0.1f)] float arriveMaxSeconds = 90f;
-
-        [Tooltip("How long a truck waits at the counter before giving up and driving off. The clock " +
-                 "starts when it parks, not when it spawns, so the drive in does not eat the window.")]
-        [SerializeField] float patience = 30f;
-
-        [Tooltip("Pause before the very first truck appears, in seconds. The road switches on the " +
-                 "instant the farmhouse reaches its level, which is the same beat as the upgrade " +
-                 "fanfare - so without this the horn lands on top of it and neither is heard " +
-                 "properly. Only the opening truck waits; every one after it is on the normal gap.")]
-        [SerializeField, Min(0f)] float firstArrivalDelay = 2f;
-
-        [Header("Movement")]
-        [SerializeField] float driveSpeed = 6f;
+        /// <summary>The tuning this queue runs on.</summary>
+        public TruckSettings Settings => settings;
 
         /// <summary>The truck at the counter, or null while the road is empty.</summary>
         public TruckOrder Front => _queue.Count > 0 ? _queue[0] : null;
@@ -147,9 +89,18 @@ namespace Farm.Selling
 
         void OnEnable()
         {
+            // Every tick reads the settings, so a road with none wired would throw once a frame.
+            // Better to say so once and stand down.
+            if (settings == null)
+            {
+                Debug.LogError("TruckQueue has no TruckSettings assigned - trucks are disabled.", this);
+                enabled = false;
+                return;
+            }
+
             // rebuilt here rather than Awake so a domain reload during play restores the line
             if (_queue.Count == 0) StartCoroutine(FillAfterDelay());
-            _nextArrival = Time.time + RollGap();
+            _nextArrival = Time.time + settings.RollGap();
             _marker = UIManager.TruckPointer;
         }
 
@@ -167,8 +118,8 @@ namespace Farm.Selling
         /// </summary>
         IEnumerator FillAfterDelay()
         {
-            if (firstArrivalDelay > 0f) yield return new WaitForSeconds(firstArrivalDelay);
-            if (_queue.Count == 0) Fill(startingTrucks);
+            if (settings.firstArrivalDelay > 0f) yield return new WaitForSeconds(settings.firstArrivalDelay);
+            if (_queue.Count == 0) Fill(settings.startingTrucks);
         }
 
         /// <summary>
@@ -216,7 +167,7 @@ namespace Farm.Selling
             {
                 if (front.Arrived)
                 {
-                    front.BeginWait(patience);
+                    front.BeginWait(settings.patience);
 
                     // Paired with BeginWait deliberately, not with Arrived. Arrived turns true the
                     // frame the truck reaches its slot and stays true for the rest of its visit, so
@@ -235,34 +186,25 @@ namespace Farm.Selling
         void TickArrivals()
         {
             if (Time.time < _nextArrival) return;
-            if (_queue.Count >= Mathf.Min(maxParked, slots.Length)) return;
+            if (_queue.Count >= Mathf.Min(settings.maxParked, slots.Length)) return;
 
             SpawnAtBack();
-            _nextArrival = Time.time + RollGap();
+            _nextArrival = Time.time + settings.RollGap();
         }
-
-        /// <summary>A fresh gap between trucks. Tolerates a max typed below the min.</summary>
-        float RollGap()
-        {
-            float lo = Mathf.Max(arriveMinSeconds, 0.1f);
-            return Random.Range(lo, Mathf.Max(arriveMaxSeconds, lo));
-        }
-
-        float RollPayoff() => Random.Range(truckPayoff.x, truckPayoff.y);
 
         // ---- the line ----
 
-        /// <summary>The trucks already parked at the start of the game. These snap in, no convoy.</summary>
+        /// <summary>The trucks already parked when the road opens. These snap in, no convoy.</summary>
         void Fill(int count)
         {
-            count = Mathf.Clamp(count, 0, Mathf.Min(maxParked, slots.Length));
+            count = Mathf.Clamp(count, 0, Mathf.Min(settings.maxParked, slots.Length));
 
             for (int i = 0; i < count; i++)
             {
                 var t = Rent();
                 var d = PickDemand();
-                t.Configure(d.item, AmountFor(d), RollPayoff());
-                t.MoveTo(slots[i].position, driveSpeed, true);
+                t.Configure(d.item, TruckSettings.RollAmount(d), settings.RollPayoff());
+                t.MoveTo(slots[i].position, settings.driveSpeed, true);
                 t.ShowBadge(true);
                 _queue.Add(t);
             }
@@ -276,7 +218,7 @@ namespace Farm.Selling
 
             var t = Rent();
             var d = PickDemand();
-            t.Configure(d.item, AmountFor(d), RollPayoff());
+            t.Configure(d.item, TruckSettings.RollAmount(d), settings.RollPayoff());
             t.transform.position = spawnPoint.position;
 
             // At the SLOT rather than the spawn point: the truck starts off-screen and the engine
@@ -284,7 +226,7 @@ namespace Farm.Selling
             // from somewhere out of frame.
             AudioManager.PlayAt(arriveSound, slots[_queue.Count].position);
 
-            t.MoveTo(slots[_queue.Count].position, driveSpeed);
+            t.MoveTo(slots[_queue.Count].position, settings.driveSpeed);
             t.ShowBadge(true);
             _queue.Add(t);
             OrderVersion++;
@@ -311,11 +253,11 @@ namespace Farm.Selling
             _queue.RemoveAt(0);
             going.EndWait();
             going.ShowBadge(false);
-            going.MoveTo(exitPoint.position, driveSpeed);
+            going.MoveTo(exitPoint.position, settings.driveSpeed);
             _leaving.Add(going);
 
             for (int i = 0; i < _queue.Count; i++)
-                _queue[i].MoveTo(slots[i].position, driveSpeed);
+                _queue[i].MoveTo(slots[i].position, settings.driveSpeed);
 
             while (_leaving.Count > MaxLeaving)
             {
@@ -324,10 +266,11 @@ namespace Farm.Selling
             }
 
             // the gap is measured from the departure, not from a clock running underneath it
-            _nextArrival = Time.time + RollGap();
+            _nextArrival = Time.time + settings.RollGap();
             OrderVersion++;
         }
 
+        /// <summary>Returns trucks that have finished driving off to the pool.</summary>
         void RecycleArrived()
         {
             for (int i = _leaving.Count - 1; i >= 0; i--)
@@ -340,6 +283,7 @@ namespace Farm.Selling
 
         // ---- pool ----
 
+        /// <summary>A truck body from the pool, or a new one when every existing body is in use.</summary>
         TruckOrder Rent()
         {
             for (int i = 0; i < _pool.Count; i++)
@@ -362,6 +306,7 @@ namespace Farm.Selling
             return t;
         }
 
+        /// <summary>Clears a truck's order and parks it back in the pool.</summary>
         void Return(TruckOrder t)
         {
             t.EndWait();
@@ -370,17 +315,10 @@ namespace Farm.Selling
         }
 
         /// <summary>
-        /// This entry's pull right now. Public so the balance can be inspected with the same
-        /// function the queue actually rolls against, rather than a copy of it.
+        /// This entry's pull right now, at the farm's current level. Public so the balance can be
+        /// inspected with the same function the queue actually rolls against, rather than a copy.
         /// </summary>
-        public int CurrentWeight(in Demand d)
-        {
-            if (d.item == null || level < d.minLevel) return 0;
-            float t = topLevel > 1 ? Mathf.Clamp01((level - 1f) / (topLevel - 1f)) : 1f;
-            return Mathf.Max(Mathf.RoundToInt(Mathf.Lerp(d.weightAtStart, d.weightAtTop, t)), 0);
-        }
-
-        public Demand[] Demands => demands;
+        public int CurrentWeight(in TruckSettings.Demand d) => settings.WeightAt(d, level);
 
         /// <summary>
         /// Rolls one order. Weighted rather than uniform, and entries the farm has not unlocked
@@ -392,8 +330,9 @@ namespace Farm.Selling
         /// being more than they have on hand is the point: missing it costs them the next quiet
         /// stretch, and that is what makes catching one worth the walk.
         /// </summary>
-        Demand PickDemand()
+        TruckSettings.Demand PickDemand()
         {
+            var demands = settings.demands;
             if (demands == null || demands.Length == 0) return default;
 
             int total = 0;
@@ -415,9 +354,6 @@ namespace Farm.Selling
             }
             return demands[demands.Length - 1];
         }
-
-        static int AmountFor(in Demand d) =>
-            Random.Range(Mathf.Max(d.minAmount, 1), Mathf.Max(d.maxAmount, Mathf.Max(d.minAmount, 1)) + 1);
 
         /// <summary>How many truck objects exist. Should settle and stop growing.</summary>
         public int PoolSize => _pool.Count;

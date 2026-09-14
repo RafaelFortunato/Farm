@@ -10623,6 +10623,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
   - {fileID: 11400000, guid: 2ff58ab61b804e94a86cec68a58ad0df, type: 2}
   - {fileID: 11400000, guid: 5e5cb217d9d994b47a3ca77a7af8d4ea, type: 2}
+  - {fileID: 11400000, guid: f3abcf4113e16e441bf5c7fa6ef6cf79, type: 2}
   - {fileID: 11400000, guid: 7846f5635b7482b448f6de83aa67f1ac, type: 2}
   - {fileID: 11400000, guid: 01866b101f4562841bc9691ef98641fc, type: 2}
   - {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
@@ -34230,6 +34231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07b94bca67f664540bc0bdb301992551, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TruckQueue
+  settings: {fileID: 11400000, guid: ad5bec30dee79af4e94a3a1f3ade2084, type: 2}
   arriveSound: {fileID: 11400000, guid: 6e07c6f021844f648a333fee4acf1ac4, type: 2}
   departSound: {fileID: 11400000, guid: 702c688a78082524a827d6b2d839730c, type: 2}
   hornSound: {fileID: 11400000, guid: 92743a72212262746973ffec47ab0cc7, type: 2}
@@ -34244,65 +34246,7 @@ MonoBehaviour:
   - {fileID: 188914085}
   spawnPoint: {fileID: 1478720162}
   exitPoint: {fileID: 1144778571}
-  demands:
-  - item: {fileID: 11400000, guid: 8659d087666fb034da76f7d73aeed2f1, type: 2}
-    weightAtStart: 40
-    weightAtTop: 8
-    minLevel: 3
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: 2ff58ab61b804e94a86cec68a58ad0df, type: 2}
-    weightAtStart: 30
-    weightAtTop: 8
-    minLevel: 3
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: 5e5cb217d9d994b47a3ca77a7af8d4ea, type: 2}
-    weightAtStart: 20
-    weightAtTop: 10
-    minLevel: 3
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: f3abcf4113e16e441bf5c7fa6ef6cf79, type: 2}
-    weightAtStart: 12
-    weightAtTop: 16
-    minLevel: 3
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: 7846f5635b7482b448f6de83aa67f1ac, type: 2}
-    weightAtStart: 0
-    weightAtTop: 20
-    minLevel: 4
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: 01866b101f4562841bc9691ef98641fc, type: 2}
-    weightAtStart: 0
-    weightAtTop: 20
-    minLevel: 4
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: 2b784c0ec675e6e40a0846f06e5ec784, type: 2}
-    weightAtStart: 0
-    weightAtTop: 24
-    minLevel: 4
-    minAmount: 1
-    maxAmount: 1
-  - item: {fileID: 11400000, guid: eb9528e05b8e4e4478d7c81749a67bea, type: 2}
-    weightAtStart: 0
-    weightAtTop: 30
-    minLevel: 4
-    minAmount: 1
-    maxAmount: 1
   level: 1
-  topLevel: 5
-  truckPayoff: {x: 2, y: 3}
-  startingTrucks: 1
-  maxParked: 1
-  arriveMinSeconds: 30
-  arriveMaxSeconds: 45
-  patience: 60
-  firstArrivalDelay: 2
-  driveSpeed: 6
 --- !u!1001 &1589038543
 PrefabInstance:
   m_ObjectHideFlags: 0

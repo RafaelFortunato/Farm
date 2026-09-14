@@ -15,6 +15,10 @@ namespace Farm.Farming
         [Header("Identity")]
         public string displayName = "Item";
 
+        [Tooltip("Name used when there is more than one, e.g. \"Apples\". Leave empty for words that " +
+                 "do not change, like Milk - the display name is used as-is.")]
+        public string pluralName;
+
         [Tooltip("Tints this item's chip in the inventory HUD and its row in menus.")]
         public Color tintColor = Color.white;
 
@@ -40,5 +44,10 @@ namespace Farm.Farming
         /// stage when no dedicated pickup model is authored.
         /// </summary>
         public virtual GameObject DisplayPrefab => worldPrefab;
+
+        /// <summary>The name to print beside a count: the plural for anything but one, when one is set.</summary>
+        /// <param name="count">How many are being described.</param>
+        public string NameFor(int count) =>
+            count != 1 && !string.IsNullOrEmpty(pluralName) ? pluralName : displayName;
     }
 }

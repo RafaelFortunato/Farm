@@ -146,7 +146,7 @@ namespace Farm.Farming
             _stored = Mathf.Clamp(count, 0, Mathf.Max(Capacity, 1));
 
             _prompt = _stored > 0 && Produces != null
-                ? "Collect " + _stored + " " + Produces.displayName
+                ? "Collect " + _stored + " " + Produces.NameFor(_stored)
                 : string.Empty;
 
             if (countLabel != null) countLabel.text = "x" + _stored;
