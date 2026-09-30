@@ -9,8 +9,7 @@ A cozy top-down farming game built in Unity 6 with the Universal Render Pipeline
 ## Play It
 
 Play it directly in browser on itch.io
-<!-- TODO: add the itch.io link -->
-_Link coming soon._
+https://rafaelpaz.itch.io/farmgame
 
 ---
 
